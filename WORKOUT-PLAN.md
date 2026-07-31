@@ -326,10 +326,10 @@ Post it. **Do not wait for polish.** Categories: `cs.CV` primary, `cs.LG` cross-
 - [x] Step 0.1 — count experts, fill `notes/backbone-survey.md`
 - [x] Apply the N decision rule → DiT-MoE failed at N=8, Step 0.2 done, **DSMoE-S-E48 (N=48)** selected
 - [x] Step 1.1a — local repo skeleton at `taes/`
-- [ ] Step 1.1b — push to GitHub, create the Kaggle Dataset, attach it to the notebook
-- [ ] Step 1.2 — load `0700000.pt`, sample 16 images, record sec/image, **snapshot the env to the Kaggle Dataset**
-- [ ] Confirm which 6 of 12 blocks carry MoE + the router module path → `notes/results-log.md`
-- [ ] Step 1.3 — reference FID-10k, saved with its command
+- [x] Step 1.1b — GitHub `taes-diffusion-moe` pushed; Kaggle Dataset `mohammedsarim/taes-artifacts` created + attached
+- [x] Step 1.2 — loaded `0700000.pt` (**ema**), 16-image grid verified, **0.4475 s/img** @ 25 RF steps / batch 64 / T4
+- [x] Confirm which 6 of 12 blocks carry MoE + the router module path → blocks **1,3,5,7,9,11**; router `blocks.{b}.mlp.gate`
+- [x] Step 1.3 — **baseline FID-10k = 23.30**, `pytorch-fid` 0.3.0, saved to `results/baseline/fid10k.json`
 - [ ] Install TooManyPapers, load the §9 bibliography
 - [ ] Read DSMoE **(Do et al., LLM)** and Ban&Pick scoring functions in full — ⚠️ not DSMoE (Liu et al.), the backbone
 - [ ] Read the DiT-MoE expert-specialization section in full
