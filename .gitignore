@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pt
+*.pth
+*.npz
+*.ckpt
+*.safetensors
+.ipynb_checkpoints/
+taes/results/**
+!taes/results/**/.gitkeep
