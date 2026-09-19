@@ -285,7 +285,204 @@ sampling code should log every chunk with `flush=True`.
 
 ---
 
-## Run log
+## 2026-08-22 — ✅ Step 2.1 COMPLETE. Router telemetry hooks (`src/hooks.py`)
+
+**Design, resolved from live source inspection (not guessed):**
+
+- Confirmed `DSMoE.forward`: `router_logits = self.gate(hidden_states)` (raw, pre-sigmoid) →
+  `topk_indices, topk_weights = self.route_tokens_to_experts(router_logits)` → passed straight
+  into `self.experts(hidden_states, topk_indices, topk_weights)`. Nothing is stored as an
+  attribute, so `route_tokens_to_experts` itself never needed touching.
+- **F3 resolved without monkeypatching.** A forward hook on `mlp.gate` captures raw
+  `router_logits`; a forward **pre**-hook on `mlp.experts` receives `topk_indices` as a plain
+  call argument (from `DSNaiveMoE.forward(self, hidden_states, top_k_index, top_k_weights)`).
+  Pre-norm gate score recomputed as `router_logits.sigmoid().gather(1, topk_indices)` —
+  mathematically identical to the internal `topk_weights` local variable *before* the
+  `norm_topk_prob` block runs, confirmed against the pasted `route_tokens_to_experts` source.
+- **F9 resolved as predicted (option a).** `DSNaiveMoE.forward` source confirms the gate weight
+  (`top_k_weights[top_x, idx, None]`) multiplies `self.blocks[expert_idx](current_state)` —
+  i.e. the expert `MLP`'s own output — so a forward hook on `mlp.experts.blocks[e]` directly is
+  genuinely pre-multiplication. No correction factor needed.
+- **F4 folded in.** `mlp.gate.e_score_correction_bias` dumped per layer at `register()` time,
+  saved alongside telemetry.
+- **Context contract, not per-token attribution.** Per-expert MLP hooks see only the routed row
+  subset, no token identity — so `hooks.py` requires the caller to set
+  `telemetry.set_context(domain_idx, t)` once before each forward pass, with every image in
+  that call sharing domain and timestep. This matches how Step 3.1 calibration actually runs
+  (one stratified `(image, t)` point — or a domain/bin-homogeneous batch — per forward call,
+  not a full 25-step `rf.sample()` trajectory), so the contract costs nothing in practice.
+- Accumulates **running sums only** (`freq`, `gate_sum`, `l2_sum`, `l2_count`) over
+  `(domain, timestep_bin=50, layer=6, expert=48)` — no per-token dumps, per WORKOUT-PLAN 2.1.
+
+**Smoke test (10 images, single direct `model(x, t, y)` call, domain=0, t=0.5):**
+
+```
+registered 300 hooks (6 gates + 6 expert-groups + 288 experts)
+output shape: torch.Size([10, 8, 32, 32])
+has NaNs: False
+freq summed over experts, per layer: [12800]*6
+l2_count summed over experts, per layer: [12800]*6   <- exact match to freq, every layer
+t range seen: 0.5 0.5
+```
+
+`12800 = N(10) × T(256 tokens/image, 32×32 latent @ patch_size 2) × top_k(5)` — exact.
+`freq == l2_count` in every layer confirms the router-side (F3) and expert-side (F9) hooks are
+counting the identical set of routed tokens, with no double-count and no drop. **Output gate met.**
+
+**Open item carried forward:** `T_MIN, T_MAX = 0.0, 1.0` in `hooks.py` is the assumed RF `t`
+range for the 50-bin discretisation — untested beyond the single smoke value `t=0.5`. Verify
+against real stratified values once Step 3.1's calibration sampler is written; adjust the
+constants if RF actually runs on a different scale (e.g. integer-like `[0,1000]`, per the
+`timestep_start/end` fields in `config_2025-11-08T22-26-38.yaml` noted in `backbone-survey.md`
+§3.2, which conflicts with the "continuous t ∈ [0,1]" text in the same file).
+
+---
+
+## 2026-08-22 — ✅ Step 2.3 COMPLETE. Domain definitions (`configs/domains.json`)
+
+Done ahead of Step 2.2 (out of WORKOUT-PLAN's written order) because latent caching needs the
+class→domain mapping to know which images to cache — the plan lists 2.2 before 2.3, but 2.3 is
+the actual dependency of 2.2, not the other way round.
+
+**Image source:** Kaggle competition dataset `imagenet-object-localization-challenge` (official
+ILSVRC2012 mirror), attached via Add Input → Competitions (required accepting the competition
+rules once). Mounts at
+`/kaggle/input/competitions/imagenet-object-localization-challenge`.
+`LOC_synset_mapping.txt` — 1000 lines, line `i` = class index `i`'s WNID + label, confirmed
+`n01440764 tench` at index 0, matching the standard DiT/ADM/torchvision convention (consistent
+with Phase 1's `grid.png` already producing recognizable standard-ImageNet categories from
+`torch.randint(0,1000)` labels). `train/<wnid>/` folders confirmed, ~1300 images/class.
+
+**Class selection — keyword matching on synset labels, not an assumed index range.**
+First attempt used plain substring search and was **wrong**: `"car"` matched inside Latin
+binomial names (`carassius`, `carcharodon`, `carduelis`...), `"bus"` matched inside
+`erythrocebus` — false-positived dozens of animal classes into the vehicle list. Fixed with
+word-boundary regex (`\bkw\b`). Final: **0 overlap** between domains.
+
+| Domain | Keyword matches | Selected | Selection method |
+|---|---|---|---|
+| animals  | 317 | **100** | `np.random.default_rng(0).choice(317, 100, replace=False)` |
+| vehicles | 69  | **69**  | all matches used — see note below |
+
+**⚠️ Vehicles cannot reach ~100 classes — ImageNet-1k does not contain that many.** 69 is the
+real ceiling under a defensible keyword definition (broadened once: added `wing`,
+`shopping cart`, `parachute` on top of the initial ~65-keyword list, +3 classes). ImageNet-1k is
+heavily animal-skewed (120+ dog breeds alone) vs. a small, non-contiguous set of transportation
+classes. **This is a hard dataset property, not a bug** — WORKOUT-PLAN 2.3 says "aim ~100," not
+"require 100." Carrying forward as a named limitation for Step 6.4 (paper Limitations section):
+*domain class-count is asymmetric (100 animal classes vs. 69 vehicle classes) because ImageNet-1k's
+label taxonomy itself is animal-skewed.*
+
+**Calibration images:** 500/domain, distributed as evenly as possible across each domain's
+classes (`divmod` base + seeded-permutation remainder assignment), fixed seeds (animals=0,
+vehicles=1), sampled without replacement from each class's train folder. Verified: 500/500,
+correct class↔wnid↔path pairing (spot-checked `n01440764_31715` → class 0 tench;
+`n02690373_1074` → class 404 airliner).
+
+**Output:** `taes/configs/domains.json` (class lists) + `taes/configs/calibration_images.json`
+(500+500 `{image_id, path, class_id, wnid, label}` records) written on Kaggle at
+`/kaggle/working/taes/configs/`. Not yet pushed to the Dataset — will go out with the end-of-phase
+snapshot (bootstrap doc §3).
+
+**Then:** Step 2.2 — cache VAE latents for these 1000 calibration images.
+
+---
+
+## 2026-08-22 — ✅ Step 2.2 COMPLETE. VAE latent cache
+
+Encoded all 1000 calibration images (500 animals + 500 vehicles from Step 2.3) through
+`stabilityai/sd-vae-ft-mse` once. Preprocessing: `Resize(256) → CenterCrop(256) → ToTensor →
+×2−1` (SD-VAE `[-1,1]` convention, matches the decode-side `/0.18215` scale already locked in
+`SESSION-BOOTSTRAP.md`). Encoded with `posterior.mode() * 0.18215` — **deterministic**, not
+`.sample()` — so calibration latents carry no VAE-encoder sampling noise; the only randomness
+downstream will be RF forward-noising at Step 3.1, applied per stratified `t`.
+
+```
+[animals]  500/500  32.4 s
+[vehicles] 500/500  29.6 s
+animals  latents: torch.Size([500, 4, 32, 32])  8.2 MB
+vehicles latents: torch.Size([500, 4, 32, 32])  8.2 MB
+index entries: 1000
+```
+
+**Output:** `results/telemetry/latents/{animals,vehicles}.pt` (raw latent tensors) +
+`results/telemetry/latents/index.json` mapping `image_id → {latent_path, latent_index, class_id,
+domain}`, exactly the WORKOUT-PLAN 2.2 spec. **Size: 16.4 MB total** — trivial, no storage
+concern, no reason to ever re-encode these before the project ends.
+
+**⇒ Phase 2 (Instrumentation) COMPLETE — Steps 2.1, 2.3, 2.2 all done** (2.3 done before 2.2;
+see note above). Next: Phase 3, Step 3.1 (run calibration through the model with hooks live).
+
+---
+
+## 2026-09-19 — ✅ PHASE 2 REDO COMPLETE (via Kaggle CLI, not notebooks)
+
+**Why redone:** original Phase 2 (2026-08-22) was never mirrored off Kaggle and the Dataset copy
+was lost. Redone in one session using `kaggle kernels push` (T4 ×2, script kernels) — the working
+agreement changed from paste-a-cell to CLI-driven; see CLAUDE.md and SESSION-BOOTSTRAP §0b.
+Order 2.1 → 2.3 → 2.2 as planned. Every gate below was read from the kernel log, not assumed.
+
+### Step 2.1 ✅ `taes/src/hooks.py` — output gate reproduced exactly
+```
+registered 300 hooks (6 gates + 6 expert-groups + 288 experts)
+e_score_correction_bias all-zero per layer: [True]*6          <- F4 reconfirmed
+output shape: torch.Size([10, 8, 32, 32])    has NaNs: False
+freq summed over experts, per layer:     [12800]*6
+l2_count summed over experts, per layer: [12800]*6            freq == l2_count everywhere: True
+```
+Design as recorded (F3 pre-norm sigmoid via gate hook + experts pre-hook; F9 hook on expert `MLP`;
+context contract `set_context(domain_idx, t)`). Written from source, not from the lost original, so
+API details (accumulator shapes `(D=2, B=50, L=6, E=48)`, `state()`/`save()`) are new but the
+semantics are the recorded ones. Mean pre-norm gate score per selected slot, layer 0, random
+inputs, t=0.5: 0.535.
+
+### F15 — ✅ RESOLVED: RF timestep range is `t ∈ [0,1]`
+Source: `rectified_flow.py` — sampler uses `t = i / sample_steps`, training `t ~ U(0,1)`,
+`zt = t·z1 + (1−t)·z0` (**t=0 is pure noise, t=1 is data**). The config's `timestep_start/end: 0/1000`
+is not used by the RF path. `T_MIN, T_MAX = 0.0, 1.0` in `hooks.py` is correct — closes the open
+item from the first Phase 2. **Bin 0 = noisiest, bin 49 = cleanest** — say so in every timestep figure.
+
+### Step 2.3 ✅ `taes/configs/domains.json` + `calibration_images.json`
+| | Matches | Selected |
+|---|---|---|
+| animals | **397** | 100 (`default_rng(0).choice`) |
+| vehicles | **69** | all 69 (matches the original run's count exactly) |
+Overlap 0. 500/500 images per domain, 100 / 69 classes used, class↔wnid↔path asserted per record.
+Spot-check: `n01440764_31715` → class 0 tench (same record as the original run); `n02687172_12159` →
+403 aircraft carrier.
+- **Animal match count differs from the original (397 vs ~317)** — the original keyword list was
+  never recorded. The new one reproduces ImageNet's animal index range 0–397 exactly (397 = all of
+  it minus the ambiguous `crane`). Nothing had consumed the old draw. **Both keyword lists,
+  exclusion lists, counts and seeds are now inside `domains.json`.**
+- Word-boundary regex used throughout. Per-domain exclusion phrases were needed on top of keywords
+  (e.g. `hot dog`, `coral reef`, `snake fence`, `car mirror`, `tank suit`, `garden cart`).
+- **`crane` (classes 134 bird / 517 machine) is ambiguous and dropped from both domains.**
+- Paper limitation §6.4 stands: 100 vs 69 classes (vehicles are a hard ImageNet ceiling).
+
+### Step 2.2 ✅ latent cache
+```
+[animals]  500/500  30.1s  torch.Size([500, 4, 32, 32])  8.2 MB  mean=0.070 std=0.826
+[vehicles] 500/500  30.7s  torch.Size([500, 4, 32, 32])  8.2 MB  mean=0.046 std=0.828
+index entries: 1000
+```
+`posterior.mode() * 0.18215`, Resize(256)→CenterCrop(256)→ToTensor→×2−1. In the Dataset at
+`results/telemetry/latents/`. **Never re-encode.**
+
+### F16 — `kaggle kernels output` downloads all of `/kaggle/working`
+The first bootstrap put the 1.1 GB checkpoint + repo clone in `/kaggle/working`; the output pull hung.
+Bootstrap now uses `/tmp` for both. Pull selectively: `--file-pattern`.
+
+### F17 — Dataset versioning by CLI can silently drop files
+A new version's file set is exactly the folder pushed. **Always `datasets download --unzip` the current
+version into a staging dir, add to it, then push** — otherwise `results/baseline/fid_stats_imagenet256.npz`
+disappears. Also: the CLI builds a temp filename from the absolute path, so push from a **short path**
+(e.g. `D:\tstage`); long scratchpad paths fail with `[Errno 2]`. Confirmed final listing has
+`results/`, `patches/`, `taes-src/`, `taes-configs/`.
+
+### F18 — ⚠️ credentials: the machine's `~/.kaggle/kaggle.json` belonged to another account
+It authenticated as `zahidhussainlone`. Replaced with a `mohammedsarim` API token in the gitignored
+project `.env` (`KAGGLE_API_TOKEN`), loaded per command with `set -a; . ./.env; set +a`. `kaggle.json`
+left untouched.
 
 ---
 

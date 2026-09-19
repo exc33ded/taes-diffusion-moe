@@ -12,3 +12,5 @@ taes/results/**
 kaggle.json
 *.pem
 .env
+kernels/*/main.py
+kernels/*/out/

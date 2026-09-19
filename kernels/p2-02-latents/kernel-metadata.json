@@ -1,0 +1,15 @@
+{
+  "id": "mohammedsarim/taes-p2-02-latents",
+  "title": "taes-p2-02-latents",
+  "code_file": "main.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "machine_shape": "NvidiaTeslaT4",
+  "dataset_sources": ["mohammedsarim/taes-artifacts"],
+  "competition_sources": ["imagenet-object-localization-challenge"],
+  "kernel_sources": [],
+  "model_sources": []
+}

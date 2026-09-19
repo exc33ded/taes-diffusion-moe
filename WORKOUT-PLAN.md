@@ -330,6 +330,9 @@ Post it. **Do not wait for polish.** Categories: `cs.CV` primary, `cs.LG` cross-
 - [x] Step 1.2 — loaded `0700000.pt` (**ema**), 16-image grid verified, **0.4475 s/img** @ 25 RF steps / batch 64 / T4
 - [x] Confirm which 6 of 12 blocks carry MoE + the router module path → blocks **1,3,5,7,9,11**; router `blocks.{b}.mlp.gate`
 - [x] Step 1.3 — **baseline FID-10k = 23.30**, `pytorch-fid` 0.3.0, saved to `results/baseline/fid10k.json`
+- [x] Step 2.1 — `taes/src/hooks.py`, 300 hooks, `freq == l2_count == 12800` per layer (redone 2026-09-19)
+- [x] Step 2.3 — `configs/domains.json` (100 animal / 69 vehicle classes) + `calibration_images.json` (500+500)
+- [x] Step 2.2 — VAE latents cached, `(500,4,32,32)` ×2, in Dataset `results/telemetry/latents/`
 - [ ] Install TooManyPapers, load the §9 bibliography
 - [ ] Read DSMoE **(Do et al., LLM)** and Ban&Pick scoring functions in full — ⚠️ not DSMoE (Liu et al.), the backbone
 - [ ] Read the DiT-MoE expert-specialization section in full
