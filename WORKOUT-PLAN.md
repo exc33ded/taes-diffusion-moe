@@ -337,6 +337,7 @@ Post it. **Do not wait for polish.** Categories: `cs.CV` primary, `cs.LG` cross-
 - [x] Step 3.2 — `src/scoring.py`, `results/scores/{domain}_B{1,2,4,8}.pt`
 - [x] Step 3.3 — `results/figures/diagnostic_{1,2,3}.png`; reading = F20
 - [x] Step 3.4 — `taes/paper/main.tex` with complete Method section (not yet compiled: no LaTeX on this machine)
+- [x] Step 4.1 — noise-floor null + mechanism checks (F21/F22); **GO** 2026-09-19, compute mode headline at k=24, memory mode at k≲12
 - [ ] Install TooManyPapers, load the §9 bibliography
 - [ ] Read DSMoE **(Do et al., LLM)** and Ban&Pick scoring functions in full — ⚠️ not DSMoE (Liu et al.), the backbone
 - [ ] Read the DiT-MoE expert-specialization section in full

@@ -234,6 +234,12 @@ recomputing with different preprocessing silently breaks comparability with FID 
 
 ---
 
+## 2c. Phase 4 additions
+- Split-half / uncond telemetry: `kernels/p4-01-splithalf` (`--pull '(_h[01]|_uncond)\.pt'`), files in Dataset `results/telemetry_p4/`. Analysis: `cd taes/src && python noisefloor.py <p3 telemetry dir> <p4 telemetry dir> <figdir>` (CPU, local).
+- Unconditional pass = `y=1000` (null class); model accepts it directly. Split-half noise floor (Jaccard 0.90–0.99) must be quoted beside any Jaccard in the paper.
+
+---
+
 ## 3. Pushing a new Dataset version — end of every session
 
 ```python

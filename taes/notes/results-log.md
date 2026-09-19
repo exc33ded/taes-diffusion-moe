@@ -527,6 +527,51 @@ B=8, k=24, plus mean off-diagonal Jaccard vs k with random baseline. Fig 3: |∪
 Method text uses t∈[0,1] (F15); REFERENCE-GUIDE §5.1's "[0,1000]" is superseded. Dataset version pushed (`--dir-mode zip`, staged from current contents per F17): now holds `results/telemetry/{animals,vehicles}.pt`, `results/scores/*`, `results/figures/*`, `taes-src/{hooks,scoring,figures}.py`; fid_stats and latents intact. Note `kaggle datasets files` is paginated — use `--page-size 100`.
 **Open for Phase 4 before quoting overlap numbers:** split-half noise-floor null for Jaccard (two independent calibration runs on disjoint 250-image halves / different noise seeds).
 
+## 2026-09-19 — ✅ Step 4.1: noise-floor null (`kernels/p4-01-splithalf`, `taes/src/noisefloor.py`, `taes/results/figures/noisefloor.png`)
+
+Per domain: two **disjoint 250-image halves** (perm seed 4000+di), independent noise seeds (10000+1000·di+100·h + bin), otherwise identical to Step 3.1 (cond., no CFG, 50 bins, jittered t). Plus one **unconditional** pass (y=1000, all 500 latents, seed 20000+…). All gates held (`freq` = n·256·5 per bin/layer, `freq == l2_count`). 85 s/half, 170 s/500-image pass on T4. Files in `results/telemetry_p4/`.
+Floor = Jaccard(top-k half0 band b, top-k half1 band b). Across-band = same statistic between *different* bands, still half0-vs-half1 (both sides carry the same cross-half noise). Mean over 6 layers:
+
+| domain, B | k | floor (same band) | extreme bands (0 vs B−1) | all off-diag | random |
+|---|---|---|---|---|---|
+| animals B4 | 24 | 0.90 | 0.36 | 0.57 | 0.33 |
+| vehicles B4 | 24 | 0.94 | 0.41 | 0.61 | 0.33 |
+| animals B8 | 24 | 0.90 | 0.30 | 0.59 | 0.33 |
+| vehicles B8 | 24 | 0.93 | 0.36 | 0.65 | 0.33 |
+| animals B4 | 12 | 0.92 | 0.24 | 0.48 | 0.14 |
+| vehicles B4 | 12 | 0.94 | 0.22 | 0.44 | 0.14 |
+| animals/vehicles B4 | 5 | 0.94 / 0.99 | 0.17 / 0.16 | 0.40 / 0.41 | 0.055 |
+
+Extreme-band Jaccard < floor in **6/6 layers in every (domain, B, k) cell** (72/72). Gate met.
+
+### F21 — the band structure is far above the noise floor
+Sampling noise costs only ~0.06–0.10 Jaccard (floor 0.90–0.99 even at 250 images, so the 500-image numbers in F20 are, if anything, slightly cleaner). Distant bands share 0.16–0.41 depending on k (k=24: 0.30–0.41 vs chance 0.33 — i.e. roughly chance; k=12: 0.17–0.24 vs 0.14; k=5: 0.12–0.17 vs 0.055), so noise-end and data-end sets are close to independent draws. F20's smooth gradient stands; F20 caveat (i) is closed. Quote floor next to every Jaccard in the paper.
+
+### F22 — mechanism / robustness
+- **Load-balancing artefact: no.** `e_score_correction_bias` is all-zero (F4), so there is no aux-loss-free balancing bias that could impose or hide timestep structure; selection and weighting rank experts identically. (Not proof about the *training* loss, but no bias-term confound exists in the checkpoint.)
+- **Depth:** effect present in all 6 layers (72/72 cells). Depth-dependent strength: extreme-band J at k=24 (B=4) is lowest in layer 2 (0.20 animals / 0.26 vehicles) and layer 1, highest in layer 0 (0.52 / 0.55); layer 0 is the most timestep-stable, mid layers the least.
+- **Domain:** animals and vehicles agree (F20 caveat ii) — this is timestep dependence, not domain dependence.
+- **CFG:** conditional-only calibration vs. unconditional (y=1000) routing, same band, B=4, mean over bands: k=24 J = 0.87–1.0 (animals), 0.89–0.98 (vehicles); k=12: 0.78–1.0 / 0.80–1.0; k=5: 0.73–1.0 / 0.75–1.0. Routing under the null label is similar but not identical, most different in layers 2–4 at small k. **Decision: no separate CFG-branch run.** Real sampling uses both branches; if Phase-5 FID at small k looks worse than the scores predict, the first thing to try is pooling cond+uncond telemetry (files exist: `{d}_uncond.pt`), not a new calibration.
+- Caveat: floor uses 250-image halves, so it is *pessimistic* (noisier) relative to the 500-image scores.
+
+## 2026-09-19 — 🟢 DECISION: **GO**
+
+**Diagnostic:** `taes/results/figures/noisefloor.png` (floor vs adjacent vs extreme bands, B=4, k=12/24) and `diagnostic_2.png`.
+Timestep-banded expert importance is real: the top-k sets of the noisiest and cleanest bands overlap at 0.12–0.41 (≈chance at k=24) while two independent 250-image calibrations of the *same* band overlap at 0.9–0.99, in every layer, both domains, B∈{4,8}, k∈{5,12,24}. The structure is a smooth band-distance gradient (adjacent bands ≈0.8–1.0), not a step. Hypothesis alive; proceed to Phase 5 with the plan's Step 5.2 order untouched. Whether the structure translates into better FID-vs-budget than a global subset is the Phase 5 question, and the honest outcome could still be "no better".
+
+**Compute vs memory (union size |∪_b S_b|/N, mean over 6 layers, from the saved scores):**
+
+| k | 5 | 8 | 12 | 16 | 24 |
+|---|---|---|---|---|---|
+| B=4 animals / vehicles | 0.20 / 0.20 | 0.32 / 0.31 | 0.42 / 0.45 | 0.56 / 0.54 | 0.75 / 0.73 |
+| B=8 animals / vehicles | 0.23 / 0.22 | 0.35 / 0.34 | 0.48 / 0.48 | 0.59 / 0.59 | 0.80 / 0.76 |
+
+- **k=24 (priority-1 headline): compute mode.** Union 0.73–0.80 ⇒ physical slicing keeps ~75% of routed experts (~25% routed-param saving at best, before the shared-expert floor), while a global k=24 memory-mode subset saves 50%. TAES's k=24 claim is therefore about *quality at equal per-band active-expert budget*, not memory.
+- **Memory mode pays at k ≲ 12:** union 0.42–0.48 ⇒ 52–58% routed-param reduction at k=12, ~68% at k=8, ~80% at k=5 (k=5 = router top-k, per-band sets are then a rigid assignment, expect heavy quality loss). Memory-mode claim, if any, lives in k∈{8,12,16}; the compare-against-global-at-equal-memory framing (B=4 union at k vs B=1 at k·union) must be used for the Pareto plot's x-axis (Step 5.3).
+- The §5.4 "N≥32 ⇒ memory primary" rule is **not** borne out at the priority-1 k; record both modes, compute mode as headline at k=24, memory mode via the union-size x-axis across the k-sweep.
+
+Run log addition below.
+
 ---
 
 ## Run log
@@ -534,3 +579,4 @@ Method text uses t∈[0,1] (F15); REFERENCE-GUIDE §5.1's "[0,1000]" is supersed
 | Date | Run ID | Config | FID | Memory | Latency | Observation |
 |---|---|---|---|---|---|---|
 | 2026-07-31 | `baseline_unpruned_seed0` | DSMoE-S-E48 ema, N=48 k=5, 25 RF steps, CFG 1.5, fp32 | **23.30** (FID-10k) | 69.2M params / 10.76 GB peak | 0.4475 s/img (tf 0.3052 + vae 0.1423) | Reference anchor. Paper reports 14.81 @ FID-50k/ADM-TF — gap expected. |
+| 2026-09-19 | `p4_splithalf` | split-half (2×250) + uncond passes, animals & vehicles, cond., 50 bins | — | — | 85 s/half | Noise floor Jaccard 0.90–0.99 vs extreme-band 0.2–0.4, 72/72 cells ⇒ GO (F21/F22). |

@@ -95,7 +95,7 @@ confirm before writing any phase code.
 
 ## Current state
 
-**Last updated: 2026-09-19 (end of Phase 3).**
+**Last updated: 2026-09-19 (end of Phase 4).**
 *Whoever finishes a phase updates this section — it is the first thing a new chat reads.*
 
 | Phase | Status |
@@ -104,12 +104,12 @@ confirm before writing any phase code.
 | 1 — Environment + smoke test + reference FID | ✅ complete — **baseline FID-10k = 23.30** |
 | 2 — Instrumentation (hooks, latents, domains) | ✅ complete (redone 2026-09-19 via CLI) — `hooks.py` 300 hooks / counts 12800 per layer; 100 animal + 69 vehicle classes; 1000 latents. Mirrored locally **and** in the Dataset. |
 | 3 — Calibration + scoring + diagnostics | ✅ complete — telemetry, scores B∈{1,2,4,8}, 3 figures, Method draft. F19/F20 in results-log. In the Dataset. |
-| **4 — GO/NO-GO** | ⬅ **NEXT** — `taes/notes/phase4-prompt.md` |
-| 5 — Main experiments | pending |
+| 4 — GO/NO-GO | ✅ **GO** — split-half noise floor 0.90–0.99 vs distant-band 0.12–0.41 (F21); no load-balance-bias confound, all layers (F22). Compute mode headline at k=24 (union 0.73–0.80), memory mode pays at k≲12. |
+| **5 — Main experiments** | ⬅ **NEXT** — `taes/notes/phase5-prompt.md` (Step 5.2 order unchanged) |
 | 6 — Finalise + preprint | pending |
 | 7 — Submission | pending |
 
-**Next action:** Phase 4 — noise-floor null for band Jaccard, then the dated GO/NO-GO entry. Preliminary read (F20): bands differ smoothly with t → GO-leaning, union/N ≈ 0.7–0.85 at k=24 → compute mode primary. Open a **new chat** and paste `taes/notes/phase4-prompt.md`.
+**Next action:** Phase 5 — `src/prune.py` (compute + memory mode), re-create the sampling/FID kernel with locked settings (`sample.py`/`fid.py` are still 0-byte stubs; Phase-1 code was notebook-only), then Step 5.2 priority 1 (B=1 vs B=4, k=24, both domains). Open a **new chat** and paste `taes/notes/phase5-prompt.md`.
 
 ---
 
