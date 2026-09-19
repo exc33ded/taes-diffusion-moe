@@ -580,3 +580,27 @@ Run log addition below.
 |---|---|---|---|---|---|---|
 | 2026-07-31 | `baseline_unpruned_seed0` | DSMoE-S-E48 ema, N=48 k=5, 25 RF steps, CFG 1.5, fp32 | **23.30** (FID-10k) | 69.2M params / 10.76 GB peak | 0.4475 s/img (tf 0.3052 + vae 0.1423) | Reference anchor. Paper reports 14.81 @ FID-50k/ADM-TF — gap expected. |
 | 2026-09-19 | `p4_splithalf` | split-half (2×250) + uncond passes, animals & vehicles, cond., 50 bins | — | — | 85 s/half | Noise floor Jaccard 0.90–0.99 vs extreme-band 0.2–0.4, 72/72 cells ⇒ GO (F21/F22). |
+
+## 2026-09-20 — ✅ Step 5.1 COMPLETE. Pruning (`taes/src/prune.py`, kernel `p5-01-prune`)
+
+**Design.** `masks` = per-layer bool `(B, E_l)`. **Compute mode** (`Pruner`): model pre-hook derives the band from RF `t` (`int(t·50)` fine bin → `edges`, same binning as `RouterTelemetry`); gate forward-hook sets logits of disallowed experts to −inf ⇒ sigmoid 0 ⇒ router's top-5 is taken from the allowed set only. **Memory mode** (`slice_experts`): keep union_b S_b per layer, slice expert `ModuleList`, router rows, `e_score_correction_bias`, `num_experts`/`n_routed_experts`; shared expert untouched; masks re-indexed.
+**Decision — k vs top-5:** the k allowed experts are the candidate pool; the router still picks its usual 5 of them by gate score (weights renormalised over the 5 as before). Hard floor k ≥ 5 (asserted). `n_group=topk_group=1` in this config, so group routing is a no-op.
+
+**Gate results (k=24, B=4, animals; T4):**
+- all-ones mask ≡ unpruned model, bit-exact.
+- Full 25-step CFG sampling, 16 imgs, telemetry: **masked-expert activations = 0** (allowed = 6,144,000; every (bin, layer) still routes exactly 5 experts/token). Negative control (unmasked): 390,598 out-of-mask activations ⇒ the check has power.
+- Memory mode kept experts/layer = [33,36,40,36,36,34] → **routed fraction 0.747**, routed params 31.70M of 42.47M, **state_dict 264.5 → 223.3 MB**. Max |compute − memory| output = **0.0** (t ∈ 0…0.96).
+- Pruned vs unpruned latent rel. change 0.160 (same seed); grid in `kernels/p5-01-prune/out/results/p5_01/`.
+
+### F23 — memory mode is functionally identical to compute mode with the same masks
+Dropped experts are in no band's set, so they never fire ⇒ one FID run per (B,k,domain) gives both modes' quality; memory mode only changes the size axis (union). Halves Phase-5 cost — the k-sweep needs one run per config, not two.
+
+### Open before priority-1 (needs a decision)
+Phase-1 baseline FID (23.30) samples **all 1000 classes** vs full-ImageNet stats. Pruning is domain-calibrated, so evaluating a domain needs domain-class generation **and a domain reference** (ImageNet-train images of the domain's classes, minus the 500 calibration images) — full-ImageNet stats would measure domain shift, not pruning damage. This means new reference stats (not a regeneration of the locked ones) plus an unpruned per-domain baseline (+2 runs ≈ 3 GPU-h). The exact Phase-1 sampling loop (per-chunk seeding) also exists only in the old notebook; `sample.py`/`fid.py` still to be rebuilt.
+
+## 2026-09-20 — ✅ Step 5.2a: domain FID references (`kernels/p5-02-domainref`, `taes/src/fid.py`, `taes/src/sample.py` written)
+Per domain: 10,000 real ImageNet-**train** images, stratified equal per class (100 animal / 69 vehicle classes), the 500 calibration images excluded, ADM `center_crop_arr` to 256, uint8 → `pytorch-fid` pool3 (same Inception path as the locked stats). Stats: `results/fid_ref/{animals,vehicles}_train10k.npz` (pulled to `kernels/p5-02-domainref/out/results/fid_ref/`; **not yet in the Dataset**).
+Gates: real-vs-real interleaved 5k/5k FID = **8.21 animals / 7.45 vehicles** (the sampling-noise scale of the reference; 10k-vs-10k will be lower). Preprocessing check: 10 real train imgs/class × 1000 classes vs the locked ADM stats = **7.27** (same scale ⇒ pipeline matches the ADM reference; not 0 because different images). First attempt used a class-ordered split (FID 100) — test bug, not a pipeline bug.
+Domain-FID absolute values are NOT comparable with 23.30; every domain result is reported vs its own unpruned baseline.
+`sample.py::run_config` = Phase-1 sampler re-created (seed = seed_base·1000003 + chunk start, z then y from one generator, y ∈ domain classes or all 1000 when `cls=None`); uint8 conversion `round((x+1)·127.5)` is an assumption about the Phase-1 notebook — checked by the full-class reproduction below.
+**Next (5.2b):** unpruned baselines: full-class FID-10k (must reproduce 23.30 — validates sampler + uint8 path; 1.5 GPU-h) + animals + vehicles domain baselines (3 GPU-h), as parallel kernels.
