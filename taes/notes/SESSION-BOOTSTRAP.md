@@ -225,6 +225,15 @@ recomputing with different preprocessing silently breaks comparability with FID 
 
 ---
 
+## 2b. Phase 3 additions
+- Kernel `step.py` files can read Dataset files at `{DS}/results/telemetry/...` **or** (zip mount) extract `{DS}/results.zip` to `/tmp/res` — see `kernels/p3-01-calibrate/step.py` for the fallback.
+- Scoring (`taes/src/scoring.py`) and figures (`taes/src/figures.py`) are CPU-only; run locally (`python taes/src/scoring.py <telemetry_dir> <scores_dir>`, `cd taes/src && python figures.py <telemetry_dir> <figures_dir>`). Local torch 2.9 CPU + matplotlib suffice. Pull telemetry with `run.py ... --pull '(animals|vehicles)\.pt'`.
+- `dataset-metadata.json` is NOT in a `datasets download --unzip` staging dir — recreate it before `datasets version`. `datasets files` paginates; use `--page-size 100`.
+- Calibration is conditional-only (true class label, no CFG). t-bins: 50 fine bins, `zt = t·z1+(1−t)·z0`. 25,000 forwards/domain ≈ 2.7 min on T4.
+- No LaTeX installed locally; `taes/paper/main.tex` is uncompiled.
+
+---
+
 ## 3. Pushing a new Dataset version — end of every session
 
 ```python

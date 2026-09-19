@@ -333,6 +333,10 @@ Post it. **Do not wait for polish.** Categories: `cs.CV` primary, `cs.LG` cross-
 - [x] Step 2.1 — `taes/src/hooks.py`, 300 hooks, `freq == l2_count == 12800` per layer (redone 2026-09-19)
 - [x] Step 2.3 — `configs/domains.json` (100 animal / 69 vehicle classes) + `calibration_images.json` (500+500)
 - [x] Step 2.2 — VAE latents cached, `(500,4,32,32)` ×2, in Dataset `results/telemetry/latents/`
+- [x] Step 3.1 — calibration telemetry, 500 img × 50 bins per domain, `freq`=640000 per (bin,layer) (2026-09-19)
+- [x] Step 3.2 — `src/scoring.py`, `results/scores/{domain}_B{1,2,4,8}.pt`
+- [x] Step 3.3 — `results/figures/diagnostic_{1,2,3}.png`; reading = F20
+- [x] Step 3.4 — `taes/paper/main.tex` with complete Method section (not yet compiled: no LaTeX on this machine)
 - [ ] Install TooManyPapers, load the §9 bibliography
 - [ ] Read DSMoE **(Do et al., LLM)** and Ban&Pick scoring functions in full — ⚠️ not DSMoE (Liu et al.), the backbone
 - [ ] Read the DiT-MoE expert-specialization section in full

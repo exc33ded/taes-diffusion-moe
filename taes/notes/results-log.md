@@ -484,6 +484,49 @@ It authenticated as `zahidhussainlone`. Replaced with a `mohammedsarim` API toke
 project `.env` (`KAGGLE_API_TOKEN`), loaded per command with `set -a; . ./.env; set +a`. `kaggle.json`
 left untouched.
 
+## 2026-09-19 — ✅ Step 3.1 COMPLETE. Calibration telemetry (`kernels/p3-01-calibrate`)
+
+Every one of the 500 latents per domain × every one of the 50 t-bins = 25,000 forwards/domain, ~2.7 min/domain
+on T4 (far under the 3 h budget, so **full coverage, not a 10-image-per-bin partition**). Design:
+- `zt = t·z1 + (1−t)·z0`, `t = (bin + U(0,1))/50` jittered inside the bin per image; `z0` seeded per (domain, bin) (`1000·di + b`); batch 100.
+- **Conditional pass only, with the image's true class label; no CFG / no null-label half.** Sampling under CFG also routes the y=1000 half, which is domain-agnostic; it is *not* in these statistics. Decision recorded; revisit if Phase-5 FID looks off vs. the scores (F19 below).
+- One `RouterTelemetry(n_domains=1)` per domain → `results/telemetry/{animals,vehicles}.pt` (shape `(1,50,6,48)`, domain_idx 0 in each file).
+
+Gate (from log): `freq` per (bin,layer) = **640000** = 500×256×5 exactly, all bins/layers; `freq == l2_count` everywhere; `t_seen` 0.0028…0.9981 (whole [0,1]).
+Mean pre-norm gate score: animals 0.476, vehicles 0.483.
+
+### F19 — dead experts in animals
+Animals: **1 expert with zero selections across all 50 bins in layers 4 and 5** (layers 0–3: none); vehicles: none. Never routed under calibration conditions (cond., 500 imgs) — free pruning candidates; check they aren't just domain-rare (they aren't picked by vehicles either only if same index — check in 3.2).
+
+## 2026-09-19 — ✅ Step 3.2 COMPLETE. Banded importance (`taes/src/scoring.py`)
+
+`I = freq × (gate_sum/freq) × (l2_sum/l2_count)`, normalised to sum 1 over experts per (domain, band, layer). Bands sum the **raw accumulators**
+of the 50 fine bins, then form the ratios (never average ratios); edges `round(i·50/B)` (B=8 → uneven 6/7-bin bands). Band 0 = noisiest (F15).
+Run locally on CPU (pure post-processing of the pulled telemetry) → `taes/results/scores/{animals,vehicles}_B{1,2,4,8}.pt`, each `{I:(B,L,E), B, edges, moe_blocks}`; all rows sum to 1.
+
+**F19 resolved:** the never-routed experts are *domain-specific, not dead* — animals: layer 4 expert 33, layer 5 expert 21; vehicles route to both.
+Not free-pruning candidates for a two-domain union. Quick B=1 look: top-5 overlap animals vs vehicles per layer = [4,3,4,3,5,5] of 5.
+
+## 2026-09-19 — ✅ Step 3.3 COMPLETE. Diagnostic figures (`taes/src/figures.py` → `taes/results/figures/diagnostic_{1,2,3}.png`)
+
+Run locally on the pulled telemetry. Fig 1: importance, expert (sorted by overall importance) × 50 bins, per layer/domain. Fig 2: Jaccard(S_b,S_b'),
+B=8, k=24, plus mean off-diagonal Jaccard vs k with random baseline. Fig 3: |∪_b S_b|/N vs k, B=4 solid / B=8 dashed.
+
+### F20 — banding is real and smooth in t (pre-GO/NO-GO reading; decision belongs to Phase 4)
+- **Overlap (k=24, mean off-diag Jaccard; random = 0.333):** B=4 animals [.67 .57 .49 .58 .56 .64], vehicles [.67 .57 .51 .65 .63 .61];
+  B=8 animals [.69 .61 .57 .62 .59 .61], vehicles [.72 .60 .57 .70 .66 .65]. Well below 1 and above chance. Structure is a **band-distance gradient**:
+  adjacent bands ≈0.8–1.0, extreme bands (noise vs data) ≈0.1–0.3, i.e. *below* the random baseline in layers 1, 2, 4 — noise-end and data-end use different experts.
+- **Fig 1:** importance is concentrated in ~10 experts/layer; individual experts ramp up toward the data end or fade toward it, plus a few sharp noise-end and data-end spikes. Smooth drift, not a step.
+- **Union (k=24, N=48):** B=4 [.69 .75 .83 .75 .75 .71] / [.67 .77 .79 .69 .71 .73]; B=8 up to .85. **Union/N ≈ 0.7–0.85 ⇒ per-band subsets cover most of the pool ⇒ memory mode saves little at k=24;
+  compute mode is the primary claim** (§5.4 rule). Memory mode only pays at small k (check fig 3 low-k end).
+- Caveats: (i) no noise floor measured — tail experts at k=24 carry tiny importance, so tail-driven Jaccard is sampling-sensitive (a split-half-of-images null is needed before quoting Jaccard in the paper);
+  (ii) animals and vehicles look alike in band structure, so this is timestep dependence, not domain dependence; (iii) calibration is conditional-only, no CFG (3.1 decision).
+
+## 2026-09-19 — ✅ Step 3.4 + PHASE 3 COMPLETE
+`taes/paper/main.tex` (article class, journal template TBD): Method section complete (setting, calibration, banded importance, selection, compute/memory modes, diagnostics) with the three figures (copied to `taes/paper/figures/`). **Not compiled** — no LaTeX on this machine; compile on Overleaf or install MiKTeX before relying on it.
+Method text uses t∈[0,1] (F15); REFERENCE-GUIDE §5.1's "[0,1000]" is superseded. Dataset version pushed (`--dir-mode zip`, staged from current contents per F17): now holds `results/telemetry/{animals,vehicles}.pt`, `results/scores/*`, `results/figures/*`, `taes-src/{hooks,scoring,figures}.py`; fid_stats and latents intact. Note `kaggle datasets files` is paginated — use `--page-size 100`.
+**Open for Phase 4 before quoting overlap numbers:** split-half noise-floor null for Jaccard (two independent calibration runs on disjoint 250-image halves / different noise seeds).
+
 ---
 
 ## Run log

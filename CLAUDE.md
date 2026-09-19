@@ -95,7 +95,7 @@ confirm before writing any phase code.
 
 ## Current state
 
-**Last updated: 2026-09-19 (end of Phase 2 redo).**
+**Last updated: 2026-09-19 (end of Phase 3).**
 *Whoever finishes a phase updates this section — it is the first thing a new chat reads.*
 
 | Phase | Status |
@@ -103,15 +103,13 @@ confirm before writing any phase code.
 | 0 — Viability / backbone choice | ✅ complete — `DSMoE-S-E48`, N=48, top-k=5 |
 | 1 — Environment + smoke test + reference FID | ✅ complete — **baseline FID-10k = 23.30** |
 | 2 — Instrumentation (hooks, latents, domains) | ✅ complete (redone 2026-09-19 via CLI) — `hooks.py` 300 hooks / counts 12800 per layer; 100 animal + 69 vehicle classes; 1000 latents. Mirrored locally **and** in the Dataset. |
-| **3 — Calibration + scoring + diagnostics** | ⬅ **NEXT** — `taes/notes/phase3-prompt.md` |
-| 4 — GO/NO-GO | pending |
+| 3 — Calibration + scoring + diagnostics | ✅ complete — telemetry, scores B∈{1,2,4,8}, 3 figures, Method draft. F19/F20 in results-log. In the Dataset. |
+| **4 — GO/NO-GO** | ⬅ **NEXT** — `taes/notes/phase4-prompt.md` |
 | 5 — Main experiments | pending |
 | 6 — Finalise + preprint | pending |
 | 7 — Submission | pending |
 
-**Next action:** Phase 3, Step 3.1 — run the 500+500 cached latents through the model with
-`RouterTelemetry` live, stratified over the 50 timestep bins (`t ∈ [0,1]`, t=0 = noise; F15).
-Open a **new chat** and paste `taes/notes/phase3-prompt.md`.
+**Next action:** Phase 4 — noise-floor null for band Jaccard, then the dated GO/NO-GO entry. Preliminary read (F20): bands differ smoothly with t → GO-leaning, union/N ≈ 0.7–0.85 at k=24 → compute mode primary. Open a **new chat** and paste `taes/notes/phase4-prompt.md`.
 
 ---
 
