@@ -14,6 +14,15 @@ log, check the step's output gate, then stop for me before the next step. Load t
 `set -a; . ./.env; set +a`. Assume sessions die: everything resumable, everything to the
 Dataset (stage-then-push, F17). Log every chunk with `flush=True`.
 
+**Kaggle credentials — do NOT use `~/.kaggle/kaggle.json`.** On this machine it belongs to a
+different account (`zahidhussainlone`, no access to `taes-artifacts` or the ImageNet competition).
+The correct `mohammedsarim` token is in the gitignored `.env` at the repo root (`KAGGLE_API_TOKEN`).
+Load it in **every** shell command that touches Kaggle (env doesn't persist between calls):
+`set -a; . ./.env; set +a`. Verify first with `kaggle config view` → username must be
+`mohammedsarim`. Never print, commit, or paste the token. If `.env` is missing or the token is
+rejected, stop and ask me for a new one (Kaggle → Settings → API Tokens → Generate) — don't fall
+back to `kaggle.json`. Details: `SESSION-BOOTSTRAP.md` §0b, `results-log.md` F18.
+
 Read these first, in order:
 
 1. `CLAUDE.md` — working agreement, current state, locked settings, end-of-phase ritual.
