@@ -8,7 +8,8 @@ import torch
 WORK  = "/kaggle/working"
 DSM   = "/tmp/EfficientMoE/DSMoE"      # /tmp: keep 1.1 GB ckpt + clone out of kernel output
 CKDIR = "/tmp/ckpt/DSMoE-S-E48"
-DS    = "/kaggle/input/datasets/mohammedsarim/taes-artifacts"
+DS    = next((p for p in ["/kaggle/input/datasets/mohammedsarim/taes-artifacts", "/kaggle/input/taes-artifacts"] if os.path.isdir(p)),
+             "/kaggle/input/datasets/mohammedsarim/taes-artifacts")   # mount path varies per container (F24)
 SNAP  = f"{WORK}/snapshot"
 RES   = f"{WORK}/results"
 STEPS, CFG, SEED = 25, 1.5, 0          # LOCKED — see results-log.md
@@ -98,7 +99,8 @@ print(f"ready | {sum(p.numel() for p in model.parameters())/1e6:.1f}M params "
       f"| MoE blocks {MOE_BLOCKS} | dataset mounted: {os.path.isdir(DS)}", flush=True)
 
 # ---- §1a: ImageNet root + taes/ paths -----------------------------------
-IMAGENET_ROOT = "/kaggle/input/competitions/imagenet-object-localization-challenge"
+IMAGENET_ROOT = next((p for p in ["/kaggle/input/competitions/imagenet-object-localization-challenge", "/kaggle/input/imagenet-object-localization-challenge"] if os.path.isdir(p)),
+                     "/kaggle/input/competitions/imagenet-object-localization-challenge")
 TAES_SRC      = f"{WORK}/taes/src"
 TAES_CONFIGS  = f"{WORK}/taes/configs"
 os.makedirs(TAES_SRC, exist_ok=True)

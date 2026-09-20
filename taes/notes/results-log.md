@@ -604,3 +604,24 @@ Gates: real-vs-real interleaved 5k/5k FID = **8.21 animals / 7.45 vehicles** (th
 Domain-FID absolute values are NOT comparable with 23.30; every domain result is reported vs its own unpruned baseline.
 `sample.py::run_config` = Phase-1 sampler re-created (seed = seed_base·1000003 + chunk start, z then y from one generator, y ∈ domain classes or all 1000 when `cls=None`); uint8 conversion `round((x+1)·127.5)` is an assumption about the Phase-1 notebook — checked by the full-class reproduction below.
 **Next (5.2b):** unpruned baselines: full-class FID-10k (must reproduce 23.30 — validates sampler + uint8 path; 1.5 GPU-h) + animals + vehicles domain baselines (3 GPU-h), as parallel kernels.
+
+## 2026-09-20 — ✅ Step 5.2b: unpruned baselines (`kernels/p5-03-base-{full,animals,vehicles}`)
+
+| Run ID | Classes | Reference | FID-10k | Wall |
+|---|---|---|---|---|
+| `unpruned_full_seed0` | all 1000 | locked ADM stats | **23.310** (Phase 1: 23.300) | 75.5 min |
+| `unpruned_animals_seed0` | 100 animal | animals_train10k | **19.141** | ~75 min |
+| `unpruned_vehicles_seed0` | 69 vehicle | vehicles_train10k | **24.279** | ~75 min |
+
+### F24 — baselines and infrastructure
+- Rebuilt sampler reproduces the Phase-1 anchor to 0.01 (23.310 vs 23.300) ⇒ seeding, uint8 conversion (`round((x+1)·127.5)`), and `pytorch-fid` path confirmed. Assumptions in `sample.py` are now validated.
+- **Domain FIDs are on their own scales** (own reference, own class set): every domain pruned result is reported as Δ from its baseline (animals 19.141, vehicles 24.279). Sample grids show correct class content (animals: birds/dogs/primates/fish; vehicles: tank, boat, bus, balloon, parachute).
+- **Kaggle mount paths vary per container**: one container mounted the Dataset at `/kaggle/input/taes-artifacts` (and ImageNet at `/kaggle/input/imagenet-object-localization-challenge`), crashing the vehicles kernel on a missing zip. `_bootstrap.py` now probes both layouts for `DS` and `IMAGENET_ROOT`.
+- Kaggle allows **2 concurrent batch GPU sessions**; a third push is refused ("Maximum batch GPU session count of 2 reached").
+- `run.py` only prints the log at completion; liveness = `kaggle kernels status`.
+
+| Date | Run ID | Config | FID | Memory | Latency | Observation |
+|---|---|---|---|---|---|---|
+| 2026-09-20 | `unpruned_full_seed0` | sampler re-created, all classes | 23.310 | 3.1 GB peak (bs 64, allocated) | 3058 s sampling / 10k | Reproduces 23.300. |
+| 2026-09-20 | `unpruned_animals_seed0` | 100 animal classes vs animals ref | 19.141 | — | — | Domain baseline. |
+| 2026-09-20 | `unpruned_vehicles_seed0` | 69 vehicle classes vs vehicles ref | 24.279 | — | — | Domain baseline. |
