@@ -640,3 +640,17 @@ Animals, k=24: TAES (B4) FID 21.277 < global (B1) FID 22.221 — closes ~31% of 
 
 ### F26 — Kaggle reliability notes (see SESSION-BOOTSTRAP §6.10-13)
 `animals_B4_k24` hung `RUNNING` with no progress for ~6h on two separate launches (identical config, masks checked clean — no NaNs, exactly k=24/band, structurally identical to vehicles_B4 which completed normally both times it ran). Third launch completed normally (77.2 min). No code-level cause found; most likely Kaggle GPU-queue contention — unrelated kernels in this same window also sat `QUEUED` for hours. Mitigation adopted going forward: fast canary run (n≈500) before each full FID-10k commit, and sanity-check every `COMPLETE` result (n, wall time, sample grid) before logging — "COMPLETE" alone is not sufficient evidence of a good run.
+
+## 2026-10-02 — ✅ Step 5.2 priority 1 COMPLETE: B=1 vs B=4, k=24, both domains
+
+| Run ID | FID-10k | Δ vs baseline | Union frac | Wall | Sanity |
+|---|---|---|---|---|---|
+| `compute_animals_B1_k24_seed0` | 22.221 | +3.080 (19.141) | 0.500 | 77.2min equiv (prior entry) | ok |
+| `compute_animals_B4_k24_seed0` | 21.277 | +2.136 (19.141) | 0.747 | 77.2min | ok |
+| `compute_vehicles_B1_k24_seed0` | 27.644 | +3.365 (24.279) | 0.500 | 78.7min | ok — grid correct vehicle classes |
+| `compute_vehicles_B4_k24_seed0` | 26.621 | +2.342 (24.279) | 0.726 | 83.7min | ok (recovered run, F25) |
+
+### F25 (extended) — replicates across both domains
+TAES (B4) beats global (B1) at equal k=24 in **both** domains, by a similar margin: animals 21.277 vs 22.221 (Δ 0.944, closes 31% of the degradation gap), vehicles 26.621 vs 27.644 (Δ 1.023, closes 30%). Consistent with F22 (animals ≈ vehicles). **Still not a memory-equal comparison** — B4 keeps 0.726–0.747 of routed experts vs B1's exact 0.500. Headline claim supported by this data: **banding improves quality at equal candidate-pool size k** (a compute/pool-restriction framing), not yet a memory-efficiency claim. Open: global B1 at k≈35–36 (matching TAES's actual union) for a true equal-memory test — candidate for priority 2's k-sweep, or a dedicated extra point.
+
+**Priority 1 (headline) gate: passed — the core hypothesis predicts a real, replicated effect, not noise.** Proceed to Step 5.2 priority 2 (k-sweep, k ∈ {5,8,12,16,24,32,48}) per the unchanged WORKOUT-PLAN order.
