@@ -366,6 +366,14 @@ blocks.{2l+1}.mlp.shared_experts       MLP(384,128)      <- NEVER PRUNE
     `kaggle kernels list --mine` for the actual push time, since `run.py`'s own terminal doesn't
     timestamp it), **don't keep waiting on the assumption it's slow** — kill it
     (`kaggle kernels delete -y <slug>`) and relaunch rather than let it idle for hours.
+13. **Don't trust `COMPLETE` as proof the run was correct, and don't over-trust the T4 generally**
+    — "free GPU" infra is not guaranteed reliable even when the status says done. A `COMPLETE`
+    with a plausible-looking FID can still hide a bad run (silent partial batch, a hook that
+    misfired, truncated sampling). Sanity-check every result before logging it: does `n` in
+    `result.json` match the requested count, is `wall_s` / `transformer_plus_sampler_s` in the
+    normal ~75–90 min range (a suspiciously short wall time is as much a red flag as a stuck
+    one), and do the pulled `samples16.png` grids show real, class-appropriate images rather than
+    noise/blanks. Don't log a number straight into `results-log.md` on COMPLETE alone.
 
 ---
 
