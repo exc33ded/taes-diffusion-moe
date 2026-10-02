@@ -1,28 +1,101 @@
-# Phase 5 kickoff prompt
+# Phase 5 continuation prompt
 
-Paste into a fresh chat. Written 2026-09-19 at the end of Phase 4 (**GO**).
+Paste into a fresh chat. Written 2026-10-02, mid-Phase-5 (priority 1 of Step 5.2 done).
 
 ---
 
-Phase 5 — TAES: implement pruning and run the configuration matrix.
+Phase 5 — TAES: finish the configuration matrix (priority 2 onward).
 
-**Working agreement.** Read `CLAUDE.md`. GPU code runs on Kaggle via the CLI (`kernels/<name>/step.py` + `kernel-metadata.json`, `python kernels/run.py`, recipe `SESSION-BOOTSTRAP.md` §0b, `set -a; . ./.env; set +a`, verify `kaggle config view` → `mohammedsarim`). One step per kernel, check the gate, stop for me.
+**Working agreement.** Read `CLAUDE.md`. GPU code runs on Kaggle via the CLI
+(`kernels/<name>/step.py` + `kernel-metadata.json`, `python kernels/run.py`, recipe
+`SESSION-BOOTSTRAP.md` §0b, `set -a; . ./.env; set +a`, verify `kaggle config view` →
+`mohammedsarim`). **One kernel at a time** — launch, watch it to completion, sanity-check,
+log, only then launch the next. Do not chain or parallelize launches.
 
-Read in order: `CLAUDE.md`; `taes/notes/SESSION-BOOTSTRAP.md`; `taes/notes/results-log.md` (**F19–F22 and the 2026-09-19 GO decision**); `WORKOUT-PLAN.md` Steps 5.1–5.3.
+Read in order: `CLAUDE.md`; `taes/notes/SESSION-BOOTSTRAP.md` (**§6 items 10–13 are new —
+Kaggle reliability gotchas from this session**); `taes/notes/results-log.md` (**F23–F25**, and
+the 2026-09-19 GO decision); `WORKOUT-PLAN.md` Step 5.2.
 
-## State entering Phase 5
-- **GO.** Band structure is far above the split-half noise floor (F21: floor 0.90–0.99 vs distant-band 0.12–0.41, 72/72 cells). Mechanism: no load-balancing bias (F4); effect in all 6 layers; animals ≈ vehicles (F22).
-- Scores `results/scores/{animals,vehicles}_B{1,2,4,8}.pt` = `{I:(B,L,E), B, edges, moe_blocks}` (band 0 = noisiest, F15); `scoring.topk_sets(I,k)` gives the masks. Uncond telemetry `results/telemetry_p4/{d}_uncond.pt` exists if small-k FID disagrees with the scores (pool cond+uncond before running anything new).
-- **Compute vs memory:** union/N at k=24 ≈ 0.73–0.80 ⇒ **compute mode is the headline at k=24**; memory mode pays at k ≲ 12 (union 0.42–0.48 at k=12, 0.32 at k=8). For the Pareto x-axis use *active-expert budget* for compute mode and *union size (routed-param fraction)* for memory mode; compare TAES at k against B=1 at equal memory (k_global ≈ union·N).
-- `taes/src/{prune,sample,fid}.py` are 0-byte stubs. Sampling/FID code lives only in the Phase-1 Kaggle notebook (baseline 23.30, seed_base 0) — **must be re-created as kernel code with identical settings** (`SESSION-BOOTSTRAP` §1, §4: EMA, euler, 25 steps, CFG 1.5, fp32, `seed = seed_base*1000003 + i`, FID via `pytorch-fid` vs `results/baseline/fid_stats_imagenet256.npz` — never regenerate). First gate: re-run the unpruned baseline on a small n and check activations/FID path against 23.30 (or a 2k-image sanity), before any pruned run.
+## State entering this session
+
+- **Step 5.1 done (F23).** `taes/src/prune.py` — compute mode (gate-mask hook) and memory mode
+  (physical slice) verified bit-identical. `taes/src/sample.py` (`run_config`) and
+  `taes/src/fid.py` rebuilt and validated: full-class FID-10k reproduces the Phase-1 anchor to
+  0.01 (23.310 vs 23.300).
+- **Domain references built:** `results/fid_ref/{animals,vehicles}_train10k.npz` (real
+  ImageNet-train images, calibration images excluded). Baselines: full 23.310, **animals
+  19.141**, **vehicles 24.279**. Every domain result is a delta from its own baseline, never
+  from 23.30.
+- **Step 5.2 priority 1 done (F25).** B=1 (global) vs B=4 (TAES), k=24, both domains:
+
+  | Domain | B1 (global) | B4 (TAES) | Δ | Union frac (B4) |
+  |---|---|---|---|---|
+  | animals | 22.221 (+3.080) | **21.277 (+2.136)** | 0.944 | 0.747 |
+  | vehicles | 27.644 (+3.365) | **26.621 (+2.342)** | 1.023 | 0.726 |
+
+  TAES beats global at equal k in both domains, consistently (~1 FID, closes ~30% of the
+  degradation gap). **This is not yet a memory-equal comparison** — B4 keeps 73–75% of routed
+  experts vs B1's exact 50%. The headline claim this data supports is "banding improves quality
+  at equal candidate-pool size k," not "banding saves memory." A fair memory test needs a global
+  B1 run at k≈35–36 (matching TAES's actual union) — not yet run; consider adding it alongside
+  priority 2.
+
+## Kaggle reliability — read before launching anything (SESSION-BOOTSTRAP §6.10–13)
+
+- The CLI gives **zero visibility into a `RUNNING` kernel** — no partial log, no partial output,
+  regardless of print statements or `--file-pattern`. "Cells" don't fix this; it's a platform
+  limit. Judge liveness only by `kaggle kernels list --mine` push time vs now, against the
+  ~75–90 min normal wall-clock for a FID-10k run.
+- `animals_B4_k24` hung `RUNNING` for ~6h on two separate launches with no code-level cause
+  found (masks checked clean). Third launch completed normally. **If a run exceeds ~100 min with
+  no sign of completion, kill it (`kaggle kernels delete -y <slug>`) and relaunch** rather than
+  wait — don't assume it's just slow.
+- **Run a fast canary (n=500, ~3–5 min) as its own separate kernel before every full n=10000
+  run.** Confirm it completes normally (it will, by construction, report a high/noisy FID at
+  n=500 — that's expected and not the point; the point is confirming it doesn't hang) before
+  committing the full run.
+- **`COMPLETE` is not proof of a good run.** Before logging any result: check `n` in
+  `result.json` matches the request, `wall_s` is in the normal ~75–90 min range (too short is as
+  suspicious as too long), and pull+view `samples16.png` to confirm real, class-appropriate
+  images.
+- Kaggle allows **2 concurrent batch GPU sessions** per account; a third push is refused.
 
 ## Goals, in order
-1. **Step 5.1 — `src/prune.py`.** Compute mode: per-band gate mask at inference (the band index derives from the RF timestep `t`; mask logits of excluded experts to −inf/before top-5 so 5 experts are still selected from the allowed set; **verify masked experts never activate** using `RouterTelemetry`). Memory mode: slice expert weights, re-index the router, never touch the shared expert, verify on-disk size shrinks; report as fraction of routed params + MB. Unit test: pruned model runs and emits images. Decide and log how the k allowed experts interact with top-5 (k ≥ 5 hard floor).
-2. **Step 5.2 — matrix, priority list unchanged.** Run ID `{mode}_{domain}_B{B}_k{k}_seed{s}`; priority 1 = B=1 vs B=4 at k=24, both domains (4 runs ≈ 6 GPU-h). **Do not reorder** the list (1 headline, 2 k-sweep {5,8,12,16,24,32,48}, 3 random removal, 4 frequency-only, 5 B∈{2,8}, 6 DERN). Priority 2 exceeds a week's quota — cut to one domain or use the second T4, and say so.
-3. Log every run (ID, FID, memory, one-line observation) and every failure in `results-log.md`, numbering findings from F23.
+
+1. **Step 5.2 priority 2 — k-sweep.** k ∈ {5, 8, 12, 16, 24, 32, 48} (hard floor k≥5), on both
+   B=1 and B=4. Full matrix is 28 runs ≈ 42 GPU-h, which exceeds a week's quota — **cut to one
+   domain** (animals, since priority 1 showed both domains behave alike — F22, F25) or spread
+   across the two allowed concurrent sessions, and say explicitly which cut was made. This is
+   where the real memory-efficiency claim lives: union/N pays off at k≲12 (F20/F22: union 0.42
+   at k=12, 0.32 at k=8), so this sweep is the actual test of whether TAES is worth anything as
+   a memory claim, not just a quality-at-equal-k claim.
+   - While here, also run **global B1 at k≈35–36** (matching priority 1's TAES union at k=24) to
+     close the memory-fairness gap flagged in F25.
+2. **Step 5.2 priority 3 — random removal** (sanity floor).
+3. **Step 5.2 priority 4 — frequency-only** scoring (justifies the gate/L2 terms in the
+   importance formula).
+4. **Step 5.2 priority 5 — B ∈ {2, 8}** (completes the band-count ablation).
+5. **Step 5.2 priority 6 — DERN-style baseline.** Nice to have, cut without guilt if quota runs
+   out.
+6. Log every run (ID, FID, memory, one-line observation) and every failure in
+   `results-log.md`, numbering findings from **F27**.
+
+## Framing reminder (from an earlier literature check this phase)
+
+No existing paper does post-hoc, training-free extraction of a timestep-banded expert subset
+from a pretrained diffusion MoE — the closest work all trains/fine-tunes per-interval experts
+(DiffPruning, Remix-DiT, ALTER) or prunes MoEs globally with no timestep axis (REAP, DERN). That
+gap is real but narrow, and it is only earned if the k-sweep shows banding beating global at
+*equal memory*, not just equal k. If the sweep shows the curves converging or crossing at low k,
+report that honestly — a null or mixed result here is still a publishable, defensible finding
+(arXiv + workshop tier at least); don't tune parameters chasing the result you want.
 
 ## Blocker rule
-Three days maximum on any blocker, then tell me and we change approach.
 
-## When Phase 5 is done
-End-of-phase ritual in `CLAUDE.md` in full (mirror code, Dataset push `--dir-mode zip` staged from current contents, results-log, WORKOUT-PLAN ticks, SESSION-BOOTSTRAP, Current state table, next prompt, commit + push), then remind me to open a new chat.
+Three days maximum on any blocker, then say so and change approach.
+
+## When Phase 5 is fully done
+
+End-of-phase ritual in `CLAUDE.md` in full (mirror code, Dataset push `--dir-mode zip` staged
+from current contents, results-log, WORKOUT-PLAN ticks, SESSION-BOOTSTRAP, Current state table,
+next prompt, commit + push), then remind Sarim to open a new chat.

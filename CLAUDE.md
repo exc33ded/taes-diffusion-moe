@@ -95,7 +95,7 @@ confirm before writing any phase code.
 
 ## Current state
 
-**Last updated: 2026-09-19 (end of Phase 4).**
+**Last updated: 2026-10-02 (Phase 5, priority 1 of Step 5.2 complete).**
 *Whoever finishes a phase updates this section — it is the first thing a new chat reads.*
 
 | Phase | Status |
@@ -105,11 +105,11 @@ confirm before writing any phase code.
 | 2 — Instrumentation (hooks, latents, domains) | ✅ complete (redone 2026-09-19 via CLI) — `hooks.py` 300 hooks / counts 12800 per layer; 100 animal + 69 vehicle classes; 1000 latents. Mirrored locally **and** in the Dataset. |
 | 3 — Calibration + scoring + diagnostics | ✅ complete — telemetry, scores B∈{1,2,4,8}, 3 figures, Method draft. F19/F20 in results-log. In the Dataset. |
 | 4 — GO/NO-GO | ✅ **GO** — split-half noise floor 0.90–0.99 vs distant-band 0.12–0.41 (F21); no load-balance-bias confound, all layers (F22). Compute mode headline at k=24 (union 0.73–0.80), memory mode pays at k≲12. |
-| **5 — Main experiments** | ⬅ **NEXT** — `taes/notes/phase5-prompt.md` (Step 5.2 order unchanged) |
+| **5 — Main experiments** | ⬅ **IN PROGRESS** — Step 5.1 done (F23); Step 5.2 priority 1 done (F25): TAES beats global at equal k=24 in both domains, not yet memory-equal. Next: priority 2 (k-sweep). `taes/notes/phase5-prompt.md` has the continuation prompt. |
 | 6 — Finalise + preprint | pending |
 | 7 — Submission | pending |
 
-**Next action:** Phase 5 — `src/prune.py` (compute + memory mode), re-create the sampling/FID kernel with locked settings (`sample.py`/`fid.py` are still 0-byte stubs; Phase-1 code was notebook-only), then Step 5.2 priority 1 (B=1 vs B=4, k=24, both domains). Open a **new chat** and paste `taes/notes/phase5-prompt.md`.
+**Next action:** Phase 5 Step 5.2 priority 2 — k-sweep, k ∈ {5,8,12,16,24,32,48}, B=1 and B=4 (28 runs ≈ 42 GPU-h, exceeds a week's quota — cut to one domain per SESSION-BOOTSTRAP §7). This is also where the real memory-efficiency claim lives (union pays off at k≲12) and where a global-B1-at-matched-union point should be added to make priority 1's comparison memory-fair. Launch one kernel at a time, canary (n=500) before every full 10k run (SESSION-BOOTSTRAP §6.13), sanity-check every `COMPLETE` result before logging. Open a **new chat** and paste `taes/notes/phase5-prompt.md`.
 
 ---
 
