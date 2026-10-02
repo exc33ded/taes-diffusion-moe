@@ -348,6 +348,24 @@ blocks.{2l+1}.mlp.shared_experts       MLP(384,128)      <- NEVER PRUNE
 9. **Add Input → Competitions, not just Datasets**, for `imagenet-object-localization-challenge`
    — it only appeared under the Competitions tab, and required accepting the competition rules
    once on a separate page before Kaggle would attach it.
+10. **The CLI (`kaggle kernels output ...`) returns nothing while a kernel is `RUNNING`** —
+    no files, no partial log, regardless of `--file-pattern` or how the script prints. Output
+    (including the log) is only served after `COMPLETE`/`ERROR`/`CANCEL`. There is no way to get
+    live visibility into a running kernel from this workflow — "cells" don't help, it's a
+    platform limit, not a script-structure problem.
+11. **A kernel can sit `RUNNING` for hours with no progress and no error** — happened twice in a
+    row on the identical `animals_B4_k24` config (~6h each) while the equivalent `vehicles_B4`
+    config completed normally in ~90 min. Checked the masks for a data-level cause (NaNs,
+    degenerate per-band counts) — none found; most likely Kaggle-side GPU contention, since
+    unrelated kernels in the same session also sat `QUEUED` for hours that day. **Mitigation:
+    run a fast canary first** — sample a small N (≈500 images, ~3–5 min) before committing to
+    the full FID-10k run, so a hang shows up in minutes, not hours. Do this for every new config
+    going forward (`run_config(..., n=500)` as a throwaway pre-check, then the real `n=10000`
+    run once the canary returns a sane FID and finishes promptly).
+12. If a run is still `RUNNING` well past its expected wall-clock (FID-10k ≈ 75–90 min; check
+    `kaggle kernels list --mine` for the actual push time, since `run.py`'s own terminal doesn't
+    timestamp it), **don't keep waiting on the assumption it's slow** — kill it
+    (`kaggle kernels delete -y <slug>`) and relaunch rather than let it idle for hours.
 
 ---
 
