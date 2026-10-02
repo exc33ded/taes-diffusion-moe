@@ -625,3 +625,18 @@ Domain-FID absolute values are NOT comparable with 23.30; every domain result is
 | 2026-09-20 | `unpruned_full_seed0` | sampler re-created, all classes | 23.310 | 3.1 GB peak (bs 64, allocated) | 3058 s sampling / 10k | Reproduces 23.300. |
 | 2026-09-20 | `unpruned_animals_seed0` | 100 animal classes vs animals ref | 19.141 | — | — | Domain baseline. |
 | 2026-09-20 | `unpruned_vehicles_seed0` | 69 vehicle classes vs vehicles ref | 24.279 | — | — | Domain baseline. |
+
+## 2026-10-02 — Step 5.2 priority 1 (3/4): B=1 vs B=4, k=24
+
+| Run ID | FID-10k | Δ vs baseline | Union frac | Sanity |
+|---|---|---|---|---|
+| `compute_animals_B1_k24_seed0` | 22.221 | +3.080 (19.141) | 0.500 | n=10000, wall ~77min, grid ok |
+| `compute_animals_B4_k24_seed0` | **21.277** | **+2.136** (19.141) | 0.747 | n=10000, wall 77.2min, grid matches baseline content, ok |
+| `compute_vehicles_B4_k24_seed0` | 26.621 | +2.342 (24.279) | 0.726 | n=10000, wall 83.7min, from a prematurely-launched run (chain script bug) — not yet grid-checked |
+| `compute_vehicles_B1_k24_seed0` | pending | — | 0.500 (by construction) | — |
+
+### F25 — TAES beats global at equal k, but not at equal memory
+Animals, k=24: TAES (B4) FID 21.277 < global (B1) FID 22.221 — closes ~31% of the degradation gap from baseline (19.141). Real, modest win in the "quality at equal candidate-pool-size k" framing. **Not a memory-equal comparison**: B4's union is 0.747 of routed experts vs B1's exact 0.500 — TAES spends 50% more experts than B1 to get there. A fair memory claim needs global B1 run at k≈36 (0.747·48) to match TAES's actual footprint; not yet run. This is the headline caveat for the paper: k=24 supports a compute/candidate-pool claim, not yet a memory claim (consistent with the 2026-09-19 GO decision's compute-vs-memory split).
+
+### F26 — Kaggle reliability notes (see SESSION-BOOTSTRAP §6.10-13)
+`animals_B4_k24` hung `RUNNING` with no progress for ~6h on two separate launches (identical config, masks checked clean — no NaNs, exactly k=24/band, structurally identical to vehicles_B4 which completed normally both times it ran). Third launch completed normally (77.2 min). No code-level cause found; most likely Kaggle GPU-queue contention — unrelated kernels in this same window also sat `QUEUED` for hours. Mitigation adopted going forward: fast canary run (n≈500) before each full FID-10k commit, and sanity-check every `COMPLETE` result (n, wall time, sample grid) before logging — "COMPLETE" alone is not sufficient evidence of a good run.
