@@ -665,3 +665,9 @@ Union fractions (animals, local from scores): B1 = k/48; B4 k=5/8/12/16/24/32 �
 
 ### F27 — at equal memory, global beats TAES-k24 by a wide margin
 Global B1 at k=36 (union 0.750) FID 19.654 (+0.51) vs TAES B4 k=24 (union 0.747) FID 21.277 (+2.14). At matched memory the global pruner is ~1.6 FID **better**; F25's equal-k win is a pool-size effect, not a memory win. The memory claim for TAES at this operating point is not supported. Remaining sweep decides whether banding wins anywhere on the memory axis (low k, where B4 union ≈ 0.32–0.42 vs B1 interpolated at k≈16–20).
+
+### Handoff 2026-10-03 ~19:50 IST (pause until next morning)
+In flight on Kaggle, nothing further to be launched tonight:
+- `mohammedsarim/taes-p5-05-sweep` = **full** animals B4 k=8 (n=10000), pushed 13:14 UTC, expect done ~14:35 UTC. Pull: `kaggle kernels output mohammedsarim/taes-p5-05-sweep -p kernels/p5-05-sweep/out --file-pattern "result\.json|samples16\.png" -o`; sanity-check n, wall (~75–85 min), grid; then log.
+- `mohammedsarim/taes-p5-06-sweep` = **canary** animals B1 k=16 (n=500), second concurrent lane (kernels/p5-06-sweep, same step.py with its own slug). If it passed (check log for `[union] routed fraction = 0.333`), set N=10000 in `kernels/p5-06-sweep/step.py` and launch the full run.
+Remaining queue after those: B4k12, B1k12, B4k5, B1k5, B4k16, B4k32, B1k8, B1k32, then priorities 3–6. Two lanes (p5-05-sweep, p5-06-sweep) can run concurrently; canary before each full run; pass extras `taes/src/fid.py taes/src/prune.py taes/src/sample.py` to run.py.
