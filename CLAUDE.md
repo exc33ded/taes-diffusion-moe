@@ -95,7 +95,7 @@ confirm before writing any phase code.
 
 ## Current state
 
-**Last updated: 2026-10-02 (Phase 5, priority 1 of Step 5.2 complete).**
+**Last updated: 2026-10-03 (Phase 5, priority 2 k-sweep partly done: animals B1/B2/B4/B8).**
 *Whoever finishes a phase updates this section — it is the first thing a new chat reads.*
 
 | Phase | Status |
@@ -105,11 +105,11 @@ confirm before writing any phase code.
 | 2 — Instrumentation (hooks, latents, domains) | ✅ complete (redone 2026-09-19 via CLI) — `hooks.py` 300 hooks / counts 12800 per layer; 100 animal + 69 vehicle classes; 1000 latents. Mirrored locally **and** in the Dataset. |
 | 3 — Calibration + scoring + diagnostics | ✅ complete — telemetry, scores B∈{1,2,4,8}, 3 figures, Method draft. F19/F20 in results-log. In the Dataset. |
 | 4 — GO/NO-GO | ✅ **GO** — split-half noise floor 0.90–0.99 vs distant-band 0.12–0.41 (F21); no load-balance-bias confound, all layers (F22). Compute mode headline at k=24 (union 0.73–0.80), memory mode pays at k≲12. |
-| **5 — Main experiments** | ⬅ **IN PROGRESS** — Step 5.1 done (F23); Step 5.2 priority 1 done (F25): TAES beats global at equal k=24 in both domains, not yet memory-equal. Next: priority 2 (k-sweep). `taes/notes/phase5-prompt.md` has the continuation prompt. |
+| **5 — Main experiments** | ⬅ **IN PROGRESS** — F23-F29. Equal-k: banding beats global (~1 FID). Equal-memory: global wins every pair tested (B1 k=36 19.65 vs B4 k=24 21.28; B1 k=16 29.15 vs B4 k=8 46.57); no trend across B∈{2,4,8}. Animals only. `taes/notes/phase5-prompt.md` has the continuation prompt. |
 | 6 — Finalise + preprint | pending |
 | 7 — Submission | pending |
 
-**Next action:** Phase 5 Step 5.2 priority 2 — k-sweep, k ∈ {5,8,12,16,24,32,48}, B=1 and B=4 (28 runs ≈ 42 GPU-h, exceeds a week's quota — cut to one domain per SESSION-BOOTSTRAP §7). This is also where the real memory-efficiency claim lives (union pays off at k≲12) and where a global-B1-at-matched-union point should be added to make priority 1's comparison memory-fair. Launch one kernel at a time, canary (n=500) before every full 10k run (SESSION-BOOTSTRAP §6.13), sanity-check every `COMPLETE` result before logging. Open a **new chat** and paste `taes/notes/phase5-prompt.md`.
+**Next action:** Phase 5 continuation — B1 k=32 (confirms the interpolated matched-memory point), then priority 3 random removal and priority 4 frequency-only (new mask code needed), then remaining k-sweep points and possibly a second seed on the load-bearing comparisons. Two Kaggle lanes (`kernels/p5-05-sweep`, `p5-06-sweep`) can run concurrently; canary before every full run. Open a **new chat** and paste `taes/notes/phase5-prompt.md`.
 
 ---
 
