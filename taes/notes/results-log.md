@@ -679,3 +679,4 @@ Remaining queue after those: B4k12, B1k12, B4k5, B1k5, B4k16, B4k32, B1k8, B1k32
 ### F28 — global beats TAES at matched memory at low k too
 B1 k=16 (union 0.333): 29.15. B4 k=8 (union 0.319): 46.57. B4 k=12 (union 0.424): 31.74. Global with *less* memory (0.333) beats TAES with more (0.424), and beats TAES at matched memory (0.333 vs 0.319) by ~17 FID. With F27 (k=24/k=36) that is two memory-matched points, high and low, both lost by TAES. Banding's only win so far is equal-k (F25), a pool-size effect that costs memory. Note B4's union at fixed k is large (band sets differ), which is what kills it on the memory axis.
 Process: `run.py` poller crashed (IndexError on an empty `kaggle kernels status` reply) while both kernels completed fine; pulled manually with `kaggle kernels output`. Two concurrent lanes (`p5-05-sweep`, `p5-06-sweep`) worked.
+| `compute_animals_B8_k24_seed0` | 21.522 | +2.381 | 0.795 | n=10000, wall 73.8min, grid ok |
