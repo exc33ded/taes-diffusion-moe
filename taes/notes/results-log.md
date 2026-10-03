@@ -654,3 +654,14 @@ Animals, k=24: TAES (B4) FID 21.277 < global (B1) FID 22.221 — closes ~31% of 
 TAES (B4) beats global (B1) at equal k=24 in **both** domains, by a similar margin: animals 21.277 vs 22.221 (Δ 0.944, closes 31% of the degradation gap), vehicles 26.621 vs 27.644 (Δ 1.023, closes 30%). Consistent with F22 (animals ≈ vehicles). **Still not a memory-equal comparison** — B4 keeps 0.726–0.747 of routed experts vs B1's exact 0.500. Headline claim supported by this data: **banding improves quality at equal candidate-pool size k** (a compute/pool-restriction framing), not yet a memory-efficiency claim. Open: global B1 at k≈35–36 (matching TAES's actual union) for a true equal-memory test — candidate for priority 2's k-sweep, or a dedicated extra point.
 
 **Priority 1 (headline) gate: passed — the core hypothesis predicts a real, replicated effect, not noise.** Proceed to Step 5.2 priority 2 (k-sweep, k ∈ {5,8,12,16,24,32,48}) per the unchanged WORKOUT-PLAN order.
+
+## 2026-10-03 — Step 5.2 priority 2 started (animals only; one-domain cut). Kernel `p5-05-sweep` (parametrised; build with extras `taes/src/fid.py prune.py sample.py`)
+Cut: animals only, B∈{1,4}, k∈{5,8,12,16,32} + B1 k=36. k=48 skipped (all-ones mask ≡ unpruned = 19.141 by construction). Order: B1k36, B4k8, B1k16, B4k12, B1k12, B4k5, B1k5, B4k16, B4k32, B1k8, B1k32. Canary (n=500) before every full run.
+Union fractions (animals, local from scores): B1 = k/48; B4 k=5/8/12/16/24/32 → 0.205/0.319/0.424/0.559/0.747/0.868.
+
+| Run ID | FID-10k | Δ vs 19.141 | Union frac | Sanity |
+|---|---|---|---|---|
+| `compute_animals_B1_k36_seed0` | **19.654** | **+0.513** | 0.750 | n=10000, wall 75.8min, grid ok |
+
+### F27 — at equal memory, global beats TAES-k24 by a wide margin
+Global B1 at k=36 (union 0.750) FID 19.654 (+0.51) vs TAES B4 k=24 (union 0.747) FID 21.277 (+2.14). At matched memory the global pruner is ~1.6 FID **better**; F25's equal-k win is a pool-size effect, not a memory win. The memory claim for TAES at this operating point is not supported. Remaining sweep decides whether banding wins anywhere on the memory axis (low k, where B4 union ≈ 0.32–0.42 vs B1 interpolated at k≈16–20).
