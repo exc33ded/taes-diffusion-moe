@@ -671,3 +671,11 @@ In flight on Kaggle, nothing further to be launched tonight:
 - `mohammedsarim/taes-p5-05-sweep` = **full** animals B4 k=8 (n=10000), pushed 13:14 UTC, expect done ~14:35 UTC. Pull: `kaggle kernels output mohammedsarim/taes-p5-05-sweep -p kernels/p5-05-sweep/out --file-pattern "result\.json|samples16\.png" -o`; sanity-check n, wall (~75–85 min), grid; then log.
 - `mohammedsarim/taes-p5-06-sweep` = **canary** animals B1 k=16 (n=500), second concurrent lane (kernels/p5-06-sweep, same step.py with its own slug). If it passed (check log for `[union] routed fraction = 0.333`), set N=10000 in `kernels/p5-06-sweep/step.py` and launch the full run.
 Remaining queue after those: B4k12, B1k12, B4k5, B1k5, B4k16, B4k32, B1k8, B1k32, then priorities 3–6. Two lanes (p5-05-sweep, p5-06-sweep) can run concurrently; canary before each full run; pass extras `taes/src/fid.py taes/src/prune.py taes/src/sample.py` to run.py.
+
+| `compute_animals_B4_k8_seed0` | 46.570 | +27.429 (19.141) | 0.319 | n=10000, wall 70.6min, grid ok (same compositions, degraded texture) |
+| `compute_animals_B1_k16_seed0` | 29.153 | +10.012 | 0.333 | n=10000, wall 79.1min, grid ok |
+| `compute_animals_B4_k12_seed0` | 31.735 | +12.594 | 0.424 | n=10000, wall 82.6min, grid ok |
+
+### F28 — global beats TAES at matched memory at low k too
+B1 k=16 (union 0.333): 29.15. B4 k=8 (union 0.319): 46.57. B4 k=12 (union 0.424): 31.74. Global with *less* memory (0.333) beats TAES with more (0.424), and beats TAES at matched memory (0.333 vs 0.319) by ~17 FID. With F27 (k=24/k=36) that is two memory-matched points, high and low, both lost by TAES. Banding's only win so far is equal-k (F25), a pool-size effect that costs memory. Note B4's union at fixed k is large (band sets differ), which is what kills it on the memory axis.
+Process: `run.py` poller crashed (IndexError on an empty `kaggle kernels status` reply) while both kernels completed fine; pulled manually with `kaggle kernels output`. Two concurrent lanes (`p5-05-sweep`, `p5-06-sweep`) worked.
