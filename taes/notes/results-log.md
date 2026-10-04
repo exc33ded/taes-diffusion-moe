@@ -740,3 +740,24 @@ Agreed with it: TMLR judges soundness + "interest", not method novelty (policy p
 6. **"DIET-style baseline": DIET could not be found; drop.** Use REAP-style (verified) and frequency-only.
 7. It lists "one backbone" as an acceptable limitation; the three external verdicts treat that as a major reviewer objection — the second backbone (DSMoE-B-E48) stays in the plan. It also omits the CFG check, FID-50k, the F30 FLOP ceiling and H1 (kept-mass diagnostic), which are our extra analysis content.
 Related work to add from the search: DiT-MoE (2407.11633), Switch-DiT (2403.09176), DiffMoE (2503.14487), Race-DiT (2503.16057), ProMoE (2510.24711), EC routing for diffusion LMs (2604.01622), TEAM (2602.08404); verify each before citing.
+
+## 2026-10-04 — B1 k=12 and B4 k=16 complete (kill-criterion runs); H1 held-out test
+| Run ID | FID-10k | Δ vs 19.141 | Union | Sanity |
+|---|---|---|---|---|
+| `compute_animals_B1_k12_seed0` | 36.736 | +17.595 | 0.250 | n=10000, wall 71.4min, grid ok (more degraded than k=16) |
+| `compute_animals_B4_k16_seed0` | 25.779 | +6.638 | 0.559 | n=10000, wall 76.6min, grid ok |
+(`run.py` poller survived this time; pulled with `kaggle kernels output`.)
+
+### F31 — the equal-k advantage of banding GROWS as k shrinks (pre-registered kill criterion: PASSED)
+Animals, B1 (global) minus B4 (TAES) at equal k: k=24 **+0.94**, k=16 **+3.37** (29.153 vs 25.779), k=12 **+5.00** (36.736 vs 31.735). Pre-registered rule (written before these runs): B4 must beat B1 at equal k by >0.5 FID at both k=12 and k=16 → margins 5.0 and 3.4, passed. The extra "> 2σ" condition is still pending σ from the seed runs (generation-seed σ not yet measured; margins are large but unverified against it).
+**Memory axis unchanged:** at matched union global still wins (B1 k=16, union 0.333: 29.15 vs B4 k=8, 0.319: 46.57; B4 k=12, union 0.424: 31.74 vs B1 interpolated at 0.417 ≈ 25.5; B4 k=16, union 0.559: 25.78 vs B1 interpolated at 0.5625 ≈ 21.4). So banding wins strongly under equal-k (= equal per-band resident memory under band-wise offload) and loses under static union memory; both scopes must be reported.
+
+### H1 update — kept importance mass M, held-out test (fit f(M) on the four B1 points, predict the banded points; log-linear interpolation, in-range points only)
+| Config | M | actual ΔFID | pred from M | pred from k (= B1 at same k) |
+|---|---|---|---|---|
+| B4 k12 | 0.861 | 12.59 | 10.76 | 17.59 |
+| B4 k16 | 0.908 | 6.64 | 4.92 | 10.01 |
+| B2 k24 | 0.955 | 2.61 | 1.43 | 3.08 |
+| B4 k24 | 0.959 | 2.14 | 1.25 | 3.08 |
+| B8 k24 | 0.960 | 2.38 | 1.20 | 3.08 |
+B4 k8 (M=0.785) is below the B1 range: no prediction. Reading: M predicts the banded points far better than k at low k (errors −1.8/−1.7 vs +5.0/+3.4) but at k=24 it is no better than k (errors −0.9…−1.2 vs +0.5…+0.9). **Systematic sign: actual > predicted for all five points, i.e. banded configs lose ~1–2 FID relative to global at equal kept mass.** So M is a good but not sufficient predictor; banding carries an extra penalty (candidate causes, untested: discontinuities at band boundaries, router re-normalisation effects). Four B1 points, in-sample interpolation, single seed — hypothesis-level; stays H1, not a finding. B1 k=32 and seeds will tighten it.
