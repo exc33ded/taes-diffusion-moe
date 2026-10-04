@@ -10,13 +10,15 @@ def band_edges(B, n_bins=50):
     return [round(i * n_bins / B) for i in range(B + 1)]
 
 
-def importance(state, B):
-    """state: RouterTelemetry.state() dict, tensors (D,50,L,E). Returns (D,B,L,E), rows sum to 1 over E."""
+def importance(state, B, terms="full"):
+    """state: RouterTelemetry.state() dict, tensors (D,50,L,E). Returns (D,B,L,E), rows sum to 1 over E.
+    terms: "full" = freq x gate x l2 (TAES); "freq" = frequency only; "reap" = mean gate x mean l2 (REAP-style, no frequency)."""
     e = band_edges(B, state["n_bins"])
     def agg(k): return torch.stack([state[k][:, e[i]:e[i + 1]].double().sum(1) for i in range(B)], 1)
     freq, gate, l2, cnt = agg("freq"), agg("gate_sum"), agg("l2_sum"), agg("l2_count")
     f = freq.clamp(min=1)
-    I = freq * (gate / f) * (l2 / cnt.clamp(min=1))          # zero-freq -> 0 (freq factor)
+    gm, lm = gate / f, l2 / cnt.clamp(min=1)
+    I = {"full": freq * gm * lm, "freq": freq, "reap": gm * lm}[terms]   # zero-freq -> 0 in every variant
     return I / I.sum(-1, keepdim=True).clamp(min=1e-30)
 
 
