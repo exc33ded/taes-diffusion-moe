@@ -1,0 +1,18 @@
+\section{Analysis}\label{sec:analysis}
+
+\subsection{Why banding loses at equal static memory}
+At equal union, a global selection gives every band access to the whole kept pool, whereas banded selection restricts each band to a subset of an equally sized pool. Banding can therefore only help at equal union if restricting a band's candidates is better than letting the router choose among all kept experts, and our matched comparisons show that it is not. Banding wins at equal $k$ because it spends union memory: at $k=24$ it stores $0.747$ of the routed experts against $0.500$.
+
+\subsection{Kept importance mass}\label{sec:mass-results}
+\todo{Draft; keep only if the held-out test below survives with seeds and the additional global points ($k=12$ and $k=32$ are now in; add $k=36$ seeds).}
+For each selection we compute the kept mass $M$ (Section~\ref{sec:mass}) from calibration statistics alone. Across the eight animals configurations of Table~\ref{tab:main} available when this analysis was run, $M$ is strongly rank-correlated with the FID increase (Spearman $-0.98$; union $-0.91$; $k$ $-0.94$), but $k$ is itself monotone with both, so this is weak evidence.
+A stricter test fits a monotone curve of $\Delta$ against $M$ on the global ($B=1$) runs only and predicts the banded runs. At low $k$ it is far closer than predicting from $k$ alone (errors of about $1.7$ against $3.4$--$5.0$ FID at $k=12,16$), but at $k=24$ it is no better, and the banded runs are consistently about $1$--$2$ FID \emph{worse} than the global curve predicts at the same kept mass. We therefore treat $M$ as a useful but incomplete predictor and report the residual as a banding penalty of unknown cause (candidates: discontinuities at band boundaries, router renormalisation).
+\todo{held-out fit with seeds; second backbone; decide whether this stays in the paper.}
+
+\subsection{A ceiling on expert-level savings}\label{sec:flops}
+We measured the FLOPs of one forward pass of DSMoE-S-E48 (batch 2, no guidance) with the routed top-$k$ set to $5,4,3,2,1$ everywhere: $20.11$ GFLOP at $k=5$, and savings of $4.5\%$, $9.0\%$, $13.5\%$ and $18.0\%$ for $k=4,3,2,1$.
+Each routed expert thus accounts for about $4.5\%$ and the five routed experts for about $22\%$ of the forward FLOPs; attention, the dense blocks and the shared expert dominate. Keeping a single routed expert per token everywhere would save at most $18\%$, and the VAE decode (about a third of sampling time) is untouched by any expert-level method. Expert-level selection in this fine-grained family is therefore a memory tool rather than a compute tool.
+\todo{repeat the FLOP breakdown for DSMoE-B-E48.}
+
+\subsection{Which budget to report}
+Our results suggest that expert-selection methods that keep different experts per band, layer or step should report the \emph{union} memory they require under static deployment, and the \emph{per-band} memory only together with the swap cost under offloading; per-band $k$ alone flatters banded schemes. \todo{measure peak memory and swap latency under band-wise offload.}

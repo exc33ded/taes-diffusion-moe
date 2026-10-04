@@ -1,0 +1,465 @@
+{
+ "2212.09748": {
+  "title": "Scalable Diffusion Models with Transformers",
+  "authors": [
+   "William Peebles",
+   "Saining Xie"
+  ],
+  "year": "2022",
+  "published": "2022-12-19"
+ },
+ "2407.00945": {
+  "title": "Efficient Expert Pruning for Sparse Mixture-of-Experts Language Models: Enhancing Performance and Reducing Inference Costs",
+  "authors": [
+   "Enshu Liu",
+   "Junyi Zhu",
+   "Zinan Lin",
+   "Xuefei Ning",
+   "Matthew B. Blaschko",
+   "Shengen Yan",
+   "Guohao Dai",
+   "Huazhong Yang",
+   "Yu Wang"
+  ],
+  "year": "2024",
+  "published": "2024-07-01"
+ },
+ "2410.12013": {
+  "title": "MoE-Pruner: Pruning Mixture-of-Experts Large Language Model using the Hints from Its Router",
+  "authors": [
+   "Yanyue Xie",
+   "Zhi Zhang",
+   "Ding Zhou",
+   "Cong Xie",
+   "Ziang Song",
+   "Xin Liu",
+   "Yanzhi Wang",
+   "Xue Lin",
+   "An Xu"
+  ],
+  "year": "2024",
+  "published": "2024-10-15"
+ },
+ "2503.14487": {
+  "title": "DiffMoE: Dynamic Token Selection for Scalable Diffusion Transformers",
+  "authors": [
+   "Minglei Shi",
+   "Ziyang Yuan",
+   "Haotian Yang",
+   "Xintao Wang",
+   "Mingwu Zheng",
+   "Xin Tao",
+   "Wenliang Zhao",
+   "Wenzhao Zheng",
+   "Jie Zhou",
+   "Jiwen Lu",
+   "Pengfei Wan",
+   "Di Zhang",
+   "Kun Gai"
+  ],
+  "year": "2025",
+  "published": "2025-03-18"
+ },
+ "2503.06923": {
+  "title": "From Reusing to Forecasting: Accelerating Diffusion Models with TaylorSeers",
+  "authors": [
+   "Jiacheng Liu",
+   "Chang Zou",
+   "Yuanhuiyi Lyu",
+   "Junjie Chen",
+   "Linfeng Zhang"
+  ],
+  "year": "2025",
+  "published": "2025-03-10"
+ },
+ "2503.16057": {
+  "title": "Expert Race: A Flexible Routing Strategy for Scaling Diffusion Transformer with Mixture of Experts",
+  "authors": [
+   "Yike Yuan",
+   "Ziyu Wang",
+   "Zihao Huang",
+   "Defa Zhu",
+   "Xun Zhou",
+   "Jingyi Yu",
+   "Qiyang Min"
+  ],
+  "year": "2025",
+  "published": "2025-03-20"
+ },
+ "2604.01622": {
+  "title": "Expert-Choice Routing Enables Adaptive Computation in Diffusion Language Models",
+  "authors": [
+   "Shuibai Zhang",
+   "Caspian Zhuang",
+   "Chihan Cui",
+   "Zhihan Yang",
+   "Fred Zhangzhi Peng",
+   "Yanxin Zhang",
+   "Haoyue Bai",
+   "Zack Jia",
+   "Yang Zhou",
+   "Guanhua Chen",
+   "Ming Liu"
+  ],
+  "year": "2026",
+  "published": "2026-04-02"
+ },
+ "2209.03003": {
+  "title": "Flow Straight and Fast: Learning to Generate and Transfer Data with Rectified Flow",
+  "authors": [
+   "Xingchao Liu",
+   "Chengyue Gong",
+   "Qiang Liu"
+  ],
+  "year": "2022",
+  "published": "2022-09-07"
+ },
+ "2403.09176": {
+  "title": "Switch Diffusion Transformer: Synergizing Denoising Tasks with Sparse Mixture-of-Experts",
+  "authors": [
+   "Byeongjun Park",
+   "Hyojun Go",
+   "Jin-Young Kim",
+   "Sangmin Woo",
+   "Seokil Ham",
+   "Changick Kim"
+  ],
+  "year": "2024",
+  "published": "2024-03-14"
+ },
+ "1409.0575": {
+  "title": "ImageNet Large Scale Visual Recognition Challenge",
+  "authors": [
+   "Olga Russakovsky",
+   "Jia Deng",
+   "Hao Su",
+   "Jonathan Krause",
+   "Sanjeev Satheesh",
+   "Sean Ma",
+   "Zhiheng Huang",
+   "Andrej Karpathy",
+   "Aditya Khosla",
+   "Michael Bernstein",
+   "Alexander C. Berg",
+   "Li Fei-Fei"
+  ],
+  "year": "2014",
+  "published": "2014-09-01"
+ },
+ "2505.21817": {
+  "title": "ALTER: All-in-One Layer Pruning and Temporal Expert Routing for Efficient Diffusion Generation",
+  "authors": [
+   "Xiaomeng Yang",
+   "Lei Lu",
+   "Qihui Fan",
+   "Changdi Yang",
+   "Juyi Lin",
+   "Yanzhi Wang",
+   "Xuan Zhang",
+   "Shangqian Gao"
+  ],
+  "year": "2025",
+  "published": "2025-05-27"
+ },
+ "2112.10752": {
+  "title": "High-Resolution Image Synthesis with Latent Diffusion Models",
+  "authors": [
+   "Robin Rombach",
+   "Andreas Blattmann",
+   "Dominik Lorenz",
+   "Patrick Esser",
+   "Bj\u00f6rn Ommer"
+  ],
+  "year": "2021",
+  "published": "2021-12-20"
+ },
+ "2207.12598": {
+  "title": "Classifier-Free Diffusion Guidance",
+  "authors": [
+   "Jonathan Ho",
+   "Tim Salimans"
+  ],
+  "year": "2022",
+  "published": "2022-07-26"
+ },
+ "1706.08500": {
+  "title": "GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium",
+  "authors": [
+   "Martin Heusel",
+   "Hubert Ramsauer",
+   "Thomas Unterthiner",
+   "Bernhard Nessler",
+   "Sepp Hochreiter"
+  ],
+  "year": "2017",
+  "published": "2017-06-26"
+ },
+ "2401.06066": {
+  "title": "DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models",
+  "authors": [
+   "Damai Dai",
+   "Chengqi Deng",
+   "Chenggang Zhao",
+   "R. X. Xu",
+   "Huazuo Gao",
+   "Deli Chen",
+   "Jiashi Li",
+   "Wangding Zeng",
+   "Xingkai Yu",
+   "Y. Wu",
+   "Zhenda Xie",
+   "Y. K. Li",
+   "Panpan Huang",
+   "Fuli Luo",
+   "Chong Ruan",
+   "Zhifang Sui",
+   "Wenfeng Liang"
+  ],
+  "year": "2024",
+  "published": "2024-01-11"
+ },
+ "2412.05628": {
+  "title": "Remix-DiT: Mixing Diffusion Transformers for Multi-Expert Denoising",
+  "authors": [
+   "Gongfan Fang",
+   "Xinyin Ma",
+   "Xinchao Wang"
+  ],
+  "year": "2024",
+  "published": "2024-12-07"
+ },
+ "2606.15615": {
+  "title": "MoECa: Aligning Feature Reuse with Expert Decomposition in Diffusion Transformers",
+  "authors": [
+   "Maoliang Li",
+   "Haojing Chen",
+   "Jiayu Chen",
+   "Zihao Zheng",
+   "Xinhao Sun",
+   "Hailong Zou",
+   "Xiang Chen"
+  ],
+  "year": "2026",
+  "published": "2026-06-14"
+ },
+ "2312.17238": {
+  "title": "Fast Inference of Mixture-of-Experts Language Models with Offloading",
+  "authors": [
+   "Artyom Eliseev",
+   "Denis Mazur"
+  ],
+  "year": "2023",
+  "published": "2023-12-28"
+ },
+ "2409.15557": {
+  "title": "Mixture of Efficient Diffusion Experts Through Automatic Interval and Sub-Network Selection",
+  "authors": [
+   "Alireza Ganjdanesh",
+   "Yan Kang",
+   "Yuchen Liu",
+   "Richard Zhang",
+   "Zhe Lin",
+   "Heng Huang"
+  ],
+  "year": "2024",
+  "published": "2024-09-23"
+ },
+ "2402.14800": {
+  "title": "Not All Experts are Equal: Efficient Expert Pruning and Skipping for Mixture-of-Experts Large Language Models",
+  "authors": [
+   "Xudong Lu",
+   "Qi Liu",
+   "Yuhui Xu",
+   "Aojun Zhou",
+   "Siyuan Huang",
+   "Bo Zhang",
+   "Junchi Yan",
+   "Hongsheng Li"
+  ],
+  "year": "2024",
+  "published": "2024-02-22"
+ },
+ "2510.24711": {
+  "title": "Routing Matters in MoE: Scaling Diffusion Transformers with Explicit Routing Guidance",
+  "authors": [
+   "Yujie Wei",
+   "Shiwei Zhang",
+   "Hangjie Yuan",
+   "Yujin Han",
+   "Zhekai Chen",
+   "Jiayu Wang",
+   "Difan Zou",
+   "Xihui Liu",
+   "Yingya Zhang",
+   "Yu Liu",
+   "Hongming Shan"
+  ],
+  "year": "2025",
+  "published": "2025-10-28"
+ },
+ "2509.10377": {
+  "title": "Dropping Experts, Recombining Neurons: Retraining-Free Pruning for Sparse Mixture-of-Experts LLMs",
+  "authors": [
+   "Yixiao Zhou",
+   "Ziyu Zhao",
+   "Dongzhou Cheng",
+   "zhiliang wu",
+   "Jie Gui",
+   "Yi Yang",
+   "Fei Wu",
+   "Yu Cheng",
+   "Hehe Fan"
+  ],
+  "year": "2025",
+  "published": "2025-09-12"
+ },
+ "2603.05105": {
+  "title": "Diff-ES: Stage-wise Structural Diffusion Pruning via Evolutionary Search",
+  "authors": [
+   "Zongfang Liu",
+   "Shengkun Tang",
+   "Zongliang Wu",
+   "Xin Yuan",
+   "Zhiqiang Shen"
+  ],
+  "year": "2026",
+  "published": "2026-03-05"
+ },
+ "2606.15716": {
+  "title": "How to Score Experts for One-Shot MoE Expert Pruning: A Unified Formulation and Selection Principle",
+  "authors": [
+   "Zongfang Liu",
+   "Jinghui Zhang",
+   "Zijian Ma",
+   "Guangyi Chen",
+   "Xin Yuan"
+  ],
+  "year": "2026",
+  "published": "2026-06-14"
+ },
+ "2105.05233": {
+  "title": "Diffusion Models Beat GANs on Image Synthesis",
+  "authors": [
+   "Prafulla Dhariwal",
+   "Alex Nichol"
+  ],
+  "year": "2021",
+  "published": "2021-05-11"
+ },
+ "2407.11633": {
+  "title": "Scaling Diffusion Transformers to 16 Billion Parameters",
+  "authors": [
+   "Zhengcong Fei",
+   "Mingyuan Fan",
+   "Changqian Yu",
+   "Debang Li",
+   "Junshi Huang"
+  ],
+  "year": "2024",
+  "published": "2024-07-16"
+ },
+ "1701.06538": {
+  "title": "Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer",
+  "authors": [
+   "Noam Shazeer",
+   "Azalia Mirhoseini",
+   "Krzysztof Maziarz",
+   "Andy Davis",
+   "Quoc Le",
+   "Geoffrey Hinton",
+   "Jeff Dean"
+  ],
+  "year": "2017",
+  "published": "2017-01-23"
+ },
+ "2510.11962": {
+  "title": "MosaicDiff: Training-free Structural Pruning for Diffusion Model Acceleration Reflecting Pretraining Dynamics",
+  "authors": [
+   "Bowei Guo",
+   "Shengkun Tang",
+   "Cong Zeng",
+   "Zhiqiang Shen"
+  ],
+  "year": "2025",
+  "published": "2025-10-13"
+ },
+ "2512.01252": {
+  "title": "Efficient Training of Diffusion Mixture-of-Experts Models: A Practical Recipe",
+  "authors": [
+   "Yahui Liu",
+   "Yang Yue",
+   "Jingyuan Zhang",
+   "Chenxi Sun",
+   "Yang Zhou",
+   "Wencong Zeng",
+   "Ruiming Tang",
+   "Guorui Zhou"
+  ],
+  "year": "2025",
+  "published": "2025-12-01"
+ },
+ "2504.06792": {
+  "title": "Domain-Specific Pruning of Large Mixture-of-Experts Models with Few-shot Demonstrations",
+  "authors": [
+   "Zican Dong",
+   "Han Peng",
+   "Peiyu Liu",
+   "Wayne Xin Zhao",
+   "Dong Wu",
+   "Feng Xiao",
+   "Zhifeng Wang"
+  ],
+  "year": "2025",
+  "published": "2025-04-09"
+ },
+ "2604.04356": {
+  "title": "REAM: Merging Improves Pruning of Experts in LLMs",
+  "authors": [
+   "Saurav Jha",
+   "Maryam Hashemzadeh",
+   "Ali Saheb Pasand",
+   "Ali Parviz",
+   "Min-Joong Lee",
+   "Boris Knyazev"
+  ],
+  "year": "2026",
+  "published": "2026-04-06"
+ },
+ "2505.16056": {
+  "title": "Not All Models Suit Expert Offloading: On Local Routing Consistency of Mixture-of-Expert Models",
+  "authors": [
+   "Jingcong Liang",
+   "Siyuan Wang",
+   "Miren Tian",
+   "Yitong Li",
+   "Duyu Tang",
+   "Zhongyu Wei"
+  ],
+  "year": "2025",
+  "published": "2025-05-21"
+ },
+ "2510.13999": {
+  "title": "REAP the Experts: Why Pruning Prevails for One-Shot MoE compression",
+  "authors": [
+   "Mike Lasby",
+   "Ivan Lazarevich",
+   "Nish Sinnadurai",
+   "Sean Lie",
+   "Yani Ioannou",
+   "Vithursan Thangarasa"
+  ],
+  "year": "2025",
+  "published": "2025-10-15"
+ },
+ "2602.08404": {
+  "title": "TEAM: Temporal-Spatial Consistency Guided Expert Activation for MoE Diffusion Language Model Acceleration",
+  "authors": [
+   "Linye Wei",
+   "Zixiang Luo",
+   "Pingzhi Tang",
+   "Meng Li"
+  ],
+  "year": "2026",
+  "published": "2026-02-09"
+ }
+}

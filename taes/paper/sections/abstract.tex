@@ -1,0 +1,11 @@
+Diffusion mixture-of-experts (MoE) models route tokens to different experts at different denoising timesteps, which suggests a natural way to shrink a pretrained model without retraining: keep a different small expert subset for each timestep band.
+We ask whether this timestep specialisation can be exploited \emph{post hoc and training-free}.
+On a pretrained fine-grained diffusion MoE (DSMoE-S-E48, 48 routed experts per layer \citep{liu2025dsmoe}) we first show that band-wise expert preferences are reproducible: split-half agreement within a band is far above the agreement between distant bands.
+We then compare timestep-banded selection with global (single-band) selection under two budgets.
+At equal per-band candidate-pool size $k$, banding improves FID, and the gain grows as $k$ shrinks (\todo{final numbers with seed error bars}).
+At equal \emph{static} memory, where the union of experts kept across bands must be stored, global selection is better in every matched comparison we ran.
+\todo{one sentence on the kept-importance-mass diagnostic, only if it survives the held-out test.}
+\todo{one sentence on the second backbone (DSMoE-B-E48).}
+We also bound what expert-level savings can deliver on this model family: routed experts account for only about 22\% of per-token FLOPs, so even keeping a single routed expert everywhere saves at most 18\%.
+We therefore argue that studies of expert pruning should report union memory rather than per-band $k$, and we identify the regime, band-wise offloading, in which the equal-$k$ gain is the relevant one.
+\todo{rewrite once all numbers are final; keep every claim traceable in CLAIMS-AUDIT.md.}

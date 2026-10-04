@@ -1,0 +1,13 @@
+\section{Discussion and Limitations}\label{sec:limits}
+
+We find that timestep-banded expert preferences in a pretrained diffusion MoE are real and reproducible, that banding helps at equal per-band candidate-pool size, and that this advantage is a pool-size effect under static memory, where global selection is better.
+The practical conclusion is conditional: banding is attractive only when per-band resident memory is the binding constraint (for example with band-wise offloading), and even then it needs a measured swap cost. \todo{state the measured result.}
+
+\paragraph{Limitations.}
+(i) \textbf{Model scale.} The primary backbone has 69M parameters, too small to need offloading; conclusions about when banding pays at larger scale are untested. \todo{second backbone result.}
+(ii) \textbf{Statistics.} Most configurations are single-seed FID-10k runs; differences below the seed noise are not claimed. \todo{report $\sigma$.}
+(iii) \textbf{Evaluation protocol.} FID is computed on class-restricted generations against our own domain references, not the standard full-ImageNet protocol, and we do not report precision/recall or text-conditioned metrics. \todo{FID-50k on headline configurations.}
+(iv) \textbf{Calibration.} A single 500-image calibration sample per domain, conditional only; domains are keyword-defined and unequal in size.
+(v) \textbf{No measured system benefit.} Compute mode leaves active FLOPs unchanged, and we do not measure latency; the FLOP analysis in Section~\ref{sec:flops} bounds what expert-level savings could deliver.
+(vi) \textbf{Post-hoc framing of offloading.} The per-band resident-memory budget was identified after the equal-memory comparison; we present it as a scoped deployment regime, not as a rescue of the method.
+(vii) \textbf{Scope of the explanation.} The kept-mass diagnostic is exploratory (Section~\ref{sec:mass-results}).

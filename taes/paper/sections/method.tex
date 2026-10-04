@@ -1,0 +1,55 @@
+\section{Method}\label{sec:method}
+
+\subsection{Setting}
+We start from a pretrained diffusion transformer \citep{peebles2023dit} whose feed-forward layers are sparse mixtures of experts.
+Each MoE layer $l\in\{1,\dots,L\}$ holds $N$ routed experts $f_{l,1},\dots,f_{l,N}$ and one always-active shared expert.
+A router produces per-token logits $r_l(x)\in\mathbb{R}^N$; token $x$ is sent to the set $A_l(x)=\topk(\sigma(r_l(x)))$ of $k_0$ experts, and the layer output combines the selected expert outputs weighted by the renormalised gate scores.
+The model is a rectified-flow model \citep{liu2023rectifiedflow}: with data latent $z_1$ and noise $z_0\sim\mathcal{N}(0,I)$, the input at time $t\in[0,1]$ is $z_t=t\,z_1+(1-t)\,z_0$, so $t=0$ is pure noise and $t=1$ is clean data.
+Our aim is to select, \emph{after training and without gradients}, a subset of experts $S_{d,b,l}\subseteq\{1,\dots,N\}$ for each domain $d$, timestep band $b$ and layer $l$.
+The shared expert is never pruned: with a shared expert present it replaces the residual path inside the MoE block, so removing it would sever the block's identity connection.
+
+\paragraph{Instantiation.}
+We use DSMoE-S-E48 \citep{liu2025dsmoe} with EMA weights: $N=48$, $k_0=5$, $L=6$ MoE layers (blocks $1,3,\dots,11$ of 12), hidden size 384, expert width 128, ImageNet \citep{russakovsky2015imagenet} $256\times256$ in a $32\times32\times4$ VAE latent space \citep{rombach2022ldm}, 256 tokens per image. \todo{add DSMoE-B-E48 settings once run.}
+
+\subsection{Calibration}\label{sec:calib}
+For a domain $d$ (a set of ImageNet classes; here \emph{animals}, 100 classes, and \emph{vehicles}, 69 classes) we take $M=500$ in-domain images, encode each once with the VAE (deterministic posterior mode, scaled by $0.18215$) and cache the latent $z_1^{(i)}$.
+The unit interval is divided into $F=50$ equal fine bins. For every image and every fine bin $u$ we draw $t$ uniformly within the bin and fresh noise $z_0$, form $z_t$, and run one forward pass with the image's class label, without gradients.
+Every image therefore contributes to every timestep bin ($M\cdot F=25{,}000$ forward passes per domain).
+Forward hooks accumulate, per $(d,u,l,e)$, only running sums:
+\begin{align*}
+n &= \#\{\text{tokens routed to } e\},\\
+g &= \textstyle\sum \sigma(r_{l}(x))_e \quad\text{over those tokens},\\
+h &= \textstyle\sum \lVert f_{l,e}(x)\rVert_2 \quad\text{over those tokens}.
+\end{align*}
+Two implementation points matter. First, $g$ uses the \emph{pre-normalisation} sigmoid score: the model renormalises the selected top-$k_0$ scores to a fixed sum, which erases the router's absolute confidence, so the returned weights cannot be used. Second, $h$ is measured on the raw expert output before the gate multiplication, so the gate does not enter the score twice.
+The default calibration uses the conditional branch only; the unconditional branch used by classifier-free guidance \citep{ho2022cfg} at sampling time is not part of the statistics. We test the effect of pooling both branches in Section~\ref{sec:results}.
+
+\subsection{Banded importance}\label{sec:score}
+Partition the $F$ fine bins into $B$ contiguous bands (band $0$ the noisiest); band $b$ covers fine bins $\mathcal{U}_b$ with boundaries $\mathrm{round}(bF/B)$.
+Sums are pooled over the bins of the band \emph{before} ratios are formed: $n_b=\sum_{u\in\mathcal{U}_b}n_u$, and likewise $g_b,h_b$.
+The importance of expert $e$ is
+\begin{equation}
+I(e\mid d,b,l)=\underbrace{n_b}_{\text{frequency}}\cdot\underbrace{\frac{g_b}{n_b}}_{\text{mean gate}}\cdot\underbrace{\frac{h_b}{n_b}}_{\text{mean output norm}}
+\;=\;\frac{g_b\,h_b}{n_b},
+\end{equation}
+normalised to sum to one over experts within each $(d,b,l)$ so that layers are comparable; $I=0$ if $n_b=0$.
+The product of gate score and output norm follows output-aware importance scores for language-model experts \citep{dong2025easyep,lasby2025reap}; the frequency factor and the timestep banding are what we add. Because only raw sums are stored, $B$ is a free post-hoc parameter, and $B=1$ recovers the global, timestep-agnostic score.
+
+\paragraph{Scoring baselines.}
+To test whether the three factors matter we also evaluate \emph{frequency-only} ($I\propto n_b$), a \emph{REAP-style} score without the frequency factor ($I\propto (g_b/n_b)(h_b/n_b)$, the mean gate times the mean output norm over tokens routed to the expert \citep{lasby2025reap}), and \emph{random} selection with a fixed seed. \todo{optionally add the gate-free mean-activation-norm criterion of \citet{liu2026scoreexperts}.}
+
+\subsection{Selection}\label{sec:selection}
+For a budget of $k$ experts per layer, $S_{d,b,l}$ is the set of $k$ experts with largest $I(\cdot\mid d,b,l)$, subject to $k\ge k_0$ (the router must still find $k_0$ experts).
+
+\subsection{Deployment and two memory budgets}\label{sec:deploy}
+\paragraph{Compute mode.} At a denoising step with time $t$ in band $b$, router scores of experts outside $S_{d,b,l}$ are masked before the top-$k_0$ selection. The router still activates $k_0$ experts per token, so active FLOPs are unchanged.
+\paragraph{Static memory mode.} Take the union $U_{d,l}=\bigcup_b S_{d,b,l}$, delete all other routed experts from the checkpoint, and slice the router accordingly. Its size is governed by the union fraction $|U_{d,l}|/N$; when bands select different experts the union approaches $N$ and savings vanish. We verified that compute mode and static memory mode give identical outputs, so one FID run per $(B,k)$ serves both.
+\paragraph{Per-band resident memory.} If every image in a batch shares one timestep, only the current band's $k$ experts need to be on the accelerator at any moment, with the rest in host memory and swapped at the $B-1$ band boundaries. Peak resident routed-expert memory is then $k/N$ for banded and global selection alike, so equal $k$ is equal resident memory. \todo{report measured peak memory and swap latency.}
+We report both budgets throughout and never mix them.
+
+\subsection{Kept importance mass}\label{sec:mass}
+For a selection $S$, the \emph{kept mass} is $M=\frac{1}{BL}\sum_{b,l}\sum_{e\in S_{d,b,l}} I(e\mid d,b,l)$. It is computed from calibration statistics alone, without sampling. We test whether $M$ predicts FID degradation (Section~\ref{sec:analysis}).
+
+\subsection{Diagnostics}\label{sec:diag}
+Before any pruning we measure (i) the importance map over (expert, fine bin); (ii) the Jaccard overlap $J(S_b,S_{b'})=|S_b\cap S_{b'}|/|S_b\cup S_{b'}|$ between bands, against the chance value for random size-$k$ subsets; and (iii) the union fraction against $k$.
+To say that band-wise differences are real we compare them with a split-half noise floor: calibration is repeated on two disjoint halves of the calibration images with independent noise, and $J$ between the two halves of the \emph{same} band bounds how reproducible a band's set is.

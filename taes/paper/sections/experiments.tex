@@ -1,0 +1,20 @@
+\section{Experimental Setup}\label{sec:exp}
+
+\paragraph{Models and domains.}
+Our primary backbone is DSMoE-S-E48 (69.2M parameters, 48 routed experts and one shared expert in each of six MoE layers) \citep{liu2025dsmoe}. \todo{second backbone DSMoE-B-E48.}
+Selection is domain-calibrated, so we evaluate two domains: animals (100 ImageNet classes) and vehicles (69 classes), chosen by word-boundary keyword matching on class labels. The domains are asymmetric in size because ImageNet-1k is animal-skewed.
+
+\paragraph{Sampling.}
+All images are generated with the Euler sampler, 25 steps, classifier-free guidance scale 1.5 \citep{ho2022cfg}, EMA weights, fp32, VAE decoding in chunks. Image $i$ of a run uses the seed $\text{seed}_{\text{base}}\cdot 1000003+i$ (per chunk), drawn for the noise and then the class from one generator, with classes uniform over the domain.
+
+\paragraph{Metric.}
+We report FID \citep{heusel2017fid} computed with \texttt{pytorch-fid} 0.3.0 \citep{seitzer2020pytorchfid} on 10{,}000 generated images. Because pruning is calibrated to a domain, a full-ImageNet reference would measure domain shift rather than pruning damage. Each domain therefore has its own reference: 10{,}000 real ImageNet-train images of the domain's classes, stratified equally per class, with the 500 calibration images excluded, centre-cropped to $256\times256$ with the ADM preprocessing \citep{dhariwal2021adm}, and passed through the same Inception network.
+Domain FIDs live on their own scales, so every result is reported as the increase over the unpruned model on the same domain and reference (animals $19.141$, vehicles $24.279$). The real-versus-real FID of two interleaved $5{,}000$-image halves is $8.21$ (animals) and $7.45$ (vehicles), which indicates the scale of reference noise.
+To validate the sampling and FID pipeline we reproduce the full-ImageNet FID of the unpruned model: $23.310$ against $23.300$ from an independent earlier implementation of the same protocol.
+
+\paragraph{Runs and seeds.}
+Every configuration is one FID-10k run with $\text{seed}_{\text{base}}=0$ unless stated. \todo{report mean $\pm$ s.d. over generation seeds for the load-bearing configurations (B1 and B4 at $k=24$, B1 at $k=36$).}
+Calibration is a single 500-image sample per domain. \todo{optional second calibration sample.}
+
+\paragraph{Compute and reproducibility.}
+All runs use free Kaggle T4 GPUs (about 75--85 minutes per FID-10k run). Code, calibration statistics, scores, run identifiers and sample grids are in the supplementary material; each run is identified as \texttt{compute\_<domain>\_B<B>\_k<k>[\_<score>]\_seed<s>}.

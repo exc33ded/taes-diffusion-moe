@@ -1,0 +1,24 @@
+\section{Introduction}\label{sec:intro}
+
+Sparsely gated mixture-of-experts (MoE) layers \citep{shazeer2017moe} have been adapted to diffusion transformers by several lines of work \citep{fei2024ditmoe,park2024switchdit,shi2025diffmoe,yuan2025racedit,cheng2025diffmoe,wei2025promoe,liu2025dsmoe}.
+A recurring observation is that the router does not treat all denoising timesteps alike: expert selection prefers particular timesteps, with specialisation more concentrated early in the trajectory \citep{fei2024ditmoe}, and several designs condition experts on the timestep explicitly \citep{cheng2025diffmoe,park2024switchdit}.
+If experts specialise by timestep, a pretrained diffusion MoE might be compressible after the fact by keeping, for each timestep band, only the experts that band actually uses.
+In language models, post-training expert pruning with simple router statistics is effective without retraining \citep{lu2024notallexperts,dong2025easyep,lasby2025reap,zhou2025dern}; the open question is whether a \emph{timestep axis} adds anything in the diffusion setting.
+
+This question is easy to answer wrongly. Banded selection keeps a different subset for each band, so at a fixed number $k$ of experts per band it has access to more experts overall than a single global subset; the memory that must be stored is governed by the \emph{union} of the band subsets, not by $k$.
+Comparisons at equal $k$ therefore favour banding for a reason unrelated to specialisation.
+Conversely, if only the current band's experts need to be resident (for instance with offloading to host memory \citep{eliseev2023offloading,liang2026localrouting}), equal $k$ is the right budget.
+Which comparison is meaningful depends on the deployment, and the answer reverses between them.
+
+\paragraph{What we do.}
+We study post-hoc, training-free, timestep-banded expert selection on a pretrained fine-grained diffusion MoE and make the following contributions.
+\begin{enumerate}
+\item \textbf{A validated measurement of band-wise expert preferences} on a pretrained model, with a split-half noise floor, extending the qualitative observation of \citet{fei2024ditmoe} (Section~\ref{sec:noisefloor}). \todo{replicate on DSMoE-B-E48.}
+\item \textbf{A controlled comparison of banded and global selection} at equal $k$ and at equal static memory, with seeds and with random, frequency-only and REAP-style baselines (Section~\ref{sec:results}). \todo{fill in once runs finish.}
+\item \textbf{An explanation and a diagnostic:} how much calibration importance mass a selection keeps predicts quality loss, and banding buys mass at equal $k$ by spending union memory (Section~\ref{sec:analysis}). \todo{keep only if the held-out test supports it.}
+\item \textbf{A ceiling on expert-level savings} for this model family, from a FLOP breakdown (Section~\ref{sec:analysis}), and a scoped recommendation for how expert-pruning methods should report memory.
+\end{enumerate}
+
+\paragraph{What we do not claim.}
+We do not propose a method that beats global pruning at equal static memory (it does not), and we do not claim that timestep-dependent expert preferences are new \citep{fei2024ditmoe}.
+\todo{state final scope after the second backbone.}

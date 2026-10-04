@@ -1,0 +1,23 @@
+\section{Related Work}\label{sec:related}
+
+\paragraph{Diffusion MoE and timestep specialisation.}
+DiT-MoE scales diffusion transformers with sparse experts and reports, in an analysis of a trained model, that expert selection depends on spatial position and denoising timestep and that specialisation is more concentrated early \citep{fei2024ditmoe}.
+Other designs build the timestep into the architecture or training: expert-specific timestep conditioning \citep{cheng2025diffmoe}, task-aware sparse experts \citep{park2024switchdit}, noise-dependent capacity prediction \citep{shi2025diffmoe}, flexible routing \citep{yuan2025racedit}, and routing guidance \citep{wei2025promoe}.
+The backbone family we use shows that many narrow experts with a shared expert train well \citep{liu2025dsmoe,dai2024deepseekmoe}.
+All of these train the router or the experts; we instead measure a \emph{pretrained} router and ask what a post-hoc consumer can do with the result.
+Timestep-dependent expert capacity has also been explored in diffusion language models \citep{zhang2026ecdlm,wei2026team}.
+
+\paragraph{Timestep-aware compression of diffusion models.}
+Several methods give different timesteps different sub-networks. Some fine-tune pruned dense sub-networks per timestep interval \citep{ganjdanesh2024diffpruning,yang2025alter}, others mix basis models into timestep experts \citep{fang2024remixdit}.
+MosaicDiff prunes a dense diffusion model without training using a stage-dependent sparsity schedule \citep{guo2025mosaicdiff}, and Diff-ES searches the schedule and notes that stitching several pruned models inflates memory \citep{liu2026diffes}, the same effect our union accounting makes explicit for experts.
+MoECa accelerates DiT-MoE training-free by caching expert branches across timesteps \citep{li2026moeca}; it reduces compute rather than selecting expert subsets.
+Training-free feature caching more broadly \citep{liu2025taylorseer} reaches large speedups on much larger models than we can run here; we do not compete with it and report FLOP and memory accounting instead.
+
+\paragraph{Post-hoc expert pruning in MoE language models.}
+One-shot expert pruning from calibration statistics is well studied for language models: frequency and router heuristics \citep{lu2024notallexperts}, output-aware importance combining gate score and output norm \citep{dong2025easyep}, router-weighted activation norms \citep{lasby2025reap}, router-statistics pruning with neuron recombination \citep{zhou2025dern}, router-guided weight pruning \citep{xie2024moepruner}, and gradient-free search \citep{liu2024eep}; merging is an alternative \citep{jha2026ream}.
+\citet{liu2026scoreexperts} organise such criteria around routing frequency, gate weighting and activation strength and give a selection principle for language models.
+Our score is the frequency-weighted member of this family, and our baselines (Section~\ref{sec:method}) ask whether the same criteria transfer to a diffusion MoE and whether adding a timestep axis helps. None of these works has a timestep axis.
+
+\paragraph{Offloading.}
+Running MoE language models with experts held in host memory is established \citep{eliseev2023offloading}, and local routing consistency determines whether it pays \citep{liang2026localrouting}.
+We use this only to scope when the equal-$k$ budget is the relevant one; we do not build an offloading system.
