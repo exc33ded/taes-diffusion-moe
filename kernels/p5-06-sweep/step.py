@@ -1,6 +1,6 @@
 # ---- Step 5.2 priority 2 sweep: one parametrised kernel; edit the CONFIG line before each push ----
 import zipfile
-DOMAIN, B, K, N = "animals", 1, 16, 500   # CONFIG (N=500 -> canary)
+DOMAIN, B, K, N = "animals", 4, 16, 10000   # CONFIG (N=500 -> canary)
 def find(rel, zipname, zsub):
     for base in [DS, "/kaggle/input/taes-artifacts"]:
         p = f"{base}/{rel}"
