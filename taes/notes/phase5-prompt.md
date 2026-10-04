@@ -24,7 +24,8 @@ Read in order: `CLAUDE.md`; `taes/notes/SESSION-BOOTSTRAP.md` (§6.10-13); `taes
   frequency-only: rank by routing frequency alone, dropping the gate and L2 terms; check `scoring.py` for how
   the three terms are currently combined before changing anything).
 
-## State entering this session (animals only; baseline FID 19.141)
+## State entering this session (animals only; baseline FID 19.141) — **target is now TMLR (empirical study)**
+Read the 2026-10-04 entries at the bottom of `results-log.md` (external verdicts, F30, the TMLR decision and plan). The method/compression framing is closed; do not reopen it unless the data forces it.
 
 | Config | Union | FID-10k |
 |---|---|---|
@@ -36,31 +37,27 @@ Read in order: `CLAUDE.md`; `taes/notes/SESSION-BOOTSTRAP.md` (§6.10-13); `taes
 | B4 k=12 | 0.424 | 31.735 |
 | B4 k=24 | 0.747 | 21.277 |
 | B8 k=24 | 0.795 | 21.522 |
+In flight at hand-off (check first): **B1 k=12** (lane `p5-05-sweep`) and **B4 k=16** (lane `p5-06-sweep`), launched 2026-10-04 ~11:26 IST. Pull manually if `run.py` died. Vehicles: B1 k=24 27.644, B4 k=24 26.621 (baseline 24.279).
 
-Vehicles: B1 k=24 27.644, B4 k=24 26.621 (baseline 24.279).
+**Findings F27-F30:** banding beats global at equal k, pays more union; global wins every matched-memory pair; no trend over B; active-top-k FLOP ceiling is 18% (not worth pursuing). Claim the paper may make: distinct reproducible band preferences + banding helps at equal k + does **not** beat global at equal memory. Nothing stronger.
 
-**Findings (F27-F29):** banding beats global at *equal k* but pays 0.16-0.30 more union; at *equal memory* global wins
-every pair tested (B1 k=36 vs B4 k=24: 19.65 vs 21.28; B1 k=16 vs B4 k=8: 29.15 vs 46.57). No trend across
-B ∈ {2,4,8}. The B2-vs-global comparison at union 0.663 uses an **interpolated** B1 (~20.5), not a measured one.
-Do not tune parameters chasing a better result; a null or mixed result is still a defensible finding.
+## Goals, in order (TMLR plan; see results-log for rationale and cuts)
+Week 1
+1. Apply the kill rule to B1 k=12 / B4 k=16 (margin must exceed 0.5 FID **and** 2σ; σ comes from item 2).
+2. Seeds: gen `seed_base` 1 and 2 for B1 k=24, B4 k=24, B1 k=36 (6 runs). Report mean ± std.
+3. Measured B1 k=32 (replaces the interpolation).
+4. Baselines: random removal (global, k=24 and k=16; new seeded mask builder) and frequency-only scoring (B1 and B4 k=24; check `scoring.py` for how the three terms combine before changing it). Unit-check masks first (exactly k per band, shared expert untouched).
+5. CFG check: pool cond+uncond telemetry (`results/telemetry_p4/{d}_uncond.pt`), recompute scores, B4 k=24.
+Week 2: second backbone `DSMoE-B-E48` (telemetry, split-half Jaccard, scores, then B1 vs B4 at 2-3 configs; measure cost per run first, budget 4-5 GPU-h); vehicles replication of the k=16 and k=36 pairs.
+Week 3: FID-50k on 2-3 headline configs; peak-memory measurement of physical slicing; LaTeX in the TMLR template; verify every citation (MoECa 2606.15615, MosaicDiff ICCV 2025, DiffPruning, ALTER, Remix-DiT, REAP, EASY-EP, DERN, OLED-MoE; do **not** cite "DIET").
+Cuts if quota runs short (in order): vehicles replication, alternate-calibration resample, third FID-50k config. Never cut: seeds, B1 k=32, random + frequency-only, second backbone.
+Log every run (ID, FID, union, wall, sanity) and number new findings from **F31**. Commit at checkpoints (no Claude co-author line).
 
-## Goals, in order (animals only; vehicles only if quota remains)
-1. **B1 k=32** (union 0.667): canary, then full. Confirms the F29 interpolation. Run concurrently with step 2's coding.
-2. **Step 5.2 priority 3 — random removal** (global, seeded; k=24 and k=16 so they sit on B1's curve), then
-   **priority 4 — frequency-only** (B1 and B4 at k=24). Write the mask builders locally, unit-check them
-   (exactly k allowed per band, shared expert never pruned), then canary, then full.
-3. **Remaining k-sweep points** as quota allows, most informative first: B4 k=5, B1 k=5, B1 k=12, B4 k=16,
-   B4 k=32, B1 k=8. k=48 is skipped (all-ones mask = unpruned baseline 19.141).
-4. **Priority 6 — DERN-style baseline**: nice to have, cut without guilt.
-5. Log every run (ID, FID, union, wall, one-line observation) and every failure in `results-log.md`, numbering new
-   findings from **F30**. Commit at natural checkpoints (no Claude co-author line — see global CLAUDE.md).
-
-## Decision to make early
-Once B1 k=32 and the priority 3/4 results are in, decide whether Phase 5's story is
-"banding helps equal-k quality, not memory" (current evidence) and what is worth the remaining quota: a second
-seed on the two or three load-bearing comparisons (B1 k=36 vs B4 k=24, B1 k=16 vs B4 k=8) is probably worth more than
-more k points, since F29 notes differences below ~0.5 FID are inside plausible single-seed noise. Check Kaggle weekly
-GPU quota first (about 30 GPU-h/week; each full run is ~1.4 GPU-h) before planning more than ~15 runs.
+## Tooling
+- Two independent lanes `kernels/p5-05-sweep` and `kernels/p5-06-sweep` (own slugs); each `step.py` has one `CONFIG` line `DOMAIN, B, K, N = ...` (N=500 canary, N=10000 full). Launch: `python kernels/run.py <lane> taes/src/fid.py taes/src/prune.py taes/src/sample.py --pull 'result\.json|samples16\.png'` (the extras are mandatory).
+- `run.py`'s poller can crash on an empty status reply while the kernel is fine; check `kaggle kernels status <slug>` and pull with `kaggle kernels output <slug> -p kernels/<dir>/out --file-pattern "result\.json|samples16\.png|\.log$" -o`.
+- Quota is per account (~30 GPU-h/week); two lanes shorten wall-clock but not GPU-hours. Canary (n=500, own kernel) before every full run; sanity-check n, wall (70-90 min) and the grid.
+- Shelved: `kernels/g1-ditxl-timing`, `taes/notes/pivot-gate.md` (acceleration pivot).
 
 ## Blocker rule
 Three days maximum on any blocker, then say so and change approach.
