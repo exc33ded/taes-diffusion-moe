@@ -91,6 +91,18 @@ Compute is Kaggle free-tier T4s (~1.4 GPU-h per FID-10k run), which limits the m
 - One matched-memory comparison (B2 at union 0.663 vs global) relies on an interpolated global point
   (~20.5 at k=32, not yet measured).
 
+**Alternative framing now under test (post-hoc, after the negative result above — judge it skeptically):
+per-band residency.** Batched sampling uses a single timestep per step for the whole batch, so only the
+*current band's* k experts need to be GPU-resident; the other experts wait in CPU RAM and are swapped in at
+the B−1 band boundaries per trajectory. Peak resident routed-expert memory is then k/48 for banded *and*
+global pruning alike, so the equal-k result (banding ≈1 FID better at k=24, both domains) becomes an
+equal-resident-memory result. Pre-registered kill criterion: banded must beat global at equal k by >0.5 FID at
+both k=12 and k=16, otherwise the method framing is dropped. Still to measure: peak GPU memory and swap
+overhead. Caveats: this reframing was chosen after seeing a negative result; a 69M model is too small to
+*need* offloading (a larger released checkpoint, DSMoE-B-E48, exists but is untested); offloading adds a
+PCIe transfer dependency. Please assess whether this framing is a legitimate contribution or an
+after-the-fact rescue, and what a journal reviewer would make of it.
+
 **Planned next (not yet run):** random-removal floor, frequency-only scoring ablation (justifies gate/L2
 terms), remaining k-sweep points, possibly second seeds, a DERN-style baseline, FID-50k on a few headline
 configs, possibly a second backbone / larger model.
