@@ -1,7 +1,8 @@
 """Generates taes/src/baseline_scores.py -- importance tensors for the Phase-5 baselines, embedded as plain Python so
 kernels need no Dataset update (extras are prepended to main.py). CPU only.
-    python baselines.py <telemetry_dir>      # dir with animals.pt / vehicles.pt (kernels/p3-01-calibrate/out/results/telemetry)
-Keys: <domain>_B<B>_<freq|reap> from telemetry; animals_B1_rand_s<seed> = seeded random global ranking (no telemetry)."""
+    python baselines.py <telemetry_dir> <uncond_dir>   # animals.pt / vehicles.pt ; <domain>_uncond.pt (kernels/p4-01-splithalf/out/results/telemetry_p4)
+Keys: <domain>_B<B>_<freq|reap> from telemetry; <domain>_B<B>_cfgpool = full score from cond+uncond raw sums pooled 1:1
+(what a CFG batch routes); animals_B1_rand_s<seed> = seeded random global ranking (no telemetry)."""
 import sys, torch, scoring
 
 L, E = 6, 48
@@ -18,6 +19,10 @@ if __name__ == "__main__":
         for B in (1, 4):
             for t in ("freq", "reap"):
                 out[f"{d}_B{B}_{t}"] = scoring.importance(st, B, t)[0].float().tolist()
+        un = torch.load(f"{sys.argv[2]}/{d}_uncond.pt")
+        pool = dict(st, **{k: st[k] + un[k] for k in ("freq", "gate_sum", "l2_sum", "l2_count")})
+        for B in (1, 4):
+            out[f"{d}_B{B}_cfgpool"] = scoring.importance(pool, B)[0].float().tolist()
     for s in (0, 1, 2):
         out[f"animals_B1_rand_s{s}"] = random_importance(s).float().tolist()
     with open(__file__.replace("baselines.py", "baseline_scores.py"), "w", encoding="utf-8") as f:
