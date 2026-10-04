@@ -95,7 +95,7 @@ confirm before writing any phase code.
 
 ## Current state
 
-**Last updated: 2026-10-03 (Phase 5, priority 2 k-sweep partly done: animals B1/B2/B4/B8).**
+**Last updated: 2026-10-04 (Phase 5 in progress; TMLR empirical study; paper scaffold built; hand-off prompt written).**
 *Whoever finishes a phase updates this section — it is the first thing a new chat reads.*
 
 | Phase | Status |
@@ -109,7 +109,7 @@ confirm before writing any phase code.
 | 6 — Finalise + preprint | pending |
 | 7 — Submission | pending |
 
-**Next action:** TMLR plan, week 1 — seed σ (B1/B4 k=24, B1 k=36 × 2 gen seeds), measured B1 k=32, random-removal and frequency-only baselines, CFG-pooled calibration check; then 2nd backbone. Two Kaggle lanes (`kernels/p5-05-sweep`, `p5-06-sweep`). Open a **new chat** and paste `taes/notes/phase5-prompt.md`.
+**Next action:** open a **new chat** and paste `taes/notes/phase5-prompt.md`. First: pull and sanity-check the seed-1 runs (B1 k=24, B4 k=24) and compute σ; then week-1 queue (seeds, measured B1 k=32, random/frequency-only/REAP-style/CFG-pooled), then the second backbone and the per-band offload measurement. **Phase 5 is not done.** No Phase 5 commit has been pushed to GitHub yet.
 
 ---
 

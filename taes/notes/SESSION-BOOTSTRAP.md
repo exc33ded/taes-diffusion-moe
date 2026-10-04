@@ -375,6 +375,11 @@ blocks.{2l+1}.mlp.shared_experts       MLP(384,128)      <- NEVER PRUNE
     one), and do the pulled `samples16.png` grids show real, class-appropriate images rather than
     noise/blanks. Don't log a number straight into `results-log.md` on COMPLETE alone.
 
+14. **Two concurrent lanes (Phase 5).** `kernels/p5-05-sweep` and `kernels/p5-06-sweep` are copies of one parametrised `step.py` with separate slugs, so two kernels run at once (Kaggle cap: 2 GPU sessions). The `CONFIG` line is `DOMAIN, B, K, N, SCORE, SEED`; N=500 is a canary. Always pass the extras `taes/src/fid.py taes/src/prune.py taes/src/sample.py taes/src/baseline_scores.py` to `run.py` (missing extras -> `NameError: np`). Quota is per account (~30 GPU-h/week): two lanes shorten wall-clock, not GPU-hours.
+15. **`run.py`'s poller can crash** (`IndexError` on an empty `kaggle kernels status` reply) while the kernel keeps running. Check `kaggle kernels status <slug>` and pull manually: `kaggle kernels output <slug> -p kernels/<dir>/out --file-pattern "result\.json|samples16\.png|\.log$" -o`. A `Monitor` loop on `kaggle kernels status` is the reliable wait; it expires after 30 min and needs re-arming.
+16. **Baseline scores are embedded, not pushed to the Dataset.** `taes/src/baselines.py` (CPU) writes `taes/src/baseline_scores.py` (keys `<domain>_B<B>_{freq,reap,cfgpool}`, `animals_B1_rand_s{0,1,2}`); pass it as an extra and set `SCORE` in `CONFIG`. Regenerate from local telemetry (`kernels/p3-01-calibrate/out/...`, `kernels/p4-01-splithalf/out/...`). Write generated files with `encoding="utf-8"` (Windows default broke an em dash once).
+17. **Paper tooling.** `taes/paper/` holds the TMLR scaffold; `tools/make_bib.py` + `tools/build_refs.py` build `references.bib` from the arXiv API (only add papers whose IDs resolve; log verification in `CITATIONS.md`), `tools/lint.py` checks cites/labels/figures. No LaTeX installed locally. Do not cite "DIET", "OLED-MoE" or "TimeAware MoE (IEEE)" (unverified). Shell heredocs containing apostrophes/special quoting can fail in the tool wrapper; use the file-write tool for scripts.
+
 ---
 
 ## 7. Measured compute budget
