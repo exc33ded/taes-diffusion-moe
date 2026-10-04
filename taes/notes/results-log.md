@@ -761,3 +761,12 @@ Animals, B1 (global) minus B4 (TAES) at equal k: k=24 **+0.94**, k=16 **+3.37** 
 | B4 k24 | 0.959 | 2.14 | 1.25 | 3.08 |
 | B8 k24 | 0.960 | 2.38 | 1.20 | 3.08 |
 B4 k8 (M=0.785) is below the B1 range: no prediction. Reading: M predicts the banded points far better than k at low k (errors −1.8/−1.7 vs +5.0/+3.4) but at k=24 it is no better than k (errors −0.9…−1.2 vs +0.5…+0.9). **Systematic sign: actual > predicted for all five points, i.e. banded configs lose ~1–2 FID relative to global at equal kept mass.** So M is a good but not sufficient predictor; banding carries an extra penalty (candidate causes, untested: discontinuities at band boundaries, router re-normalisation effects). Four B1 points, in-sample interpolation, single seed — hypothesis-level; stays H1, not a finding. B1 k=32 and seeds will tighten it.
+
+## 2026-10-04 — Seed-1 runs (generation seed_base 1) for B1 k=24 and B4 k=24
+| Run ID | FID-10k | seed-0 value | seed difference | Union | Sanity |
+|---|---|---|---|---|---|
+| `compute_animals_B1_k24_seed1` | 21.693 | 22.221 | −0.528 | 0.500 | n=10000, wall 71.0min, grid ok |
+| `compute_animals_B4_k24_seed1` | 20.846 | 21.277 | −0.431 | 0.747 | n=10000, wall 70.6min, grid ok |
+
+### F32 — generation-seed noise is ~0.3–0.4 FID; the paired banded-vs-global gap is stable
+Absolute FID moves by 0.53 (B1) and 0.43 (B4) between seeds, i.e. a crude per-config σ of ≈0.37 and ≈0.31 (two seeds each: **very low degrees of freedom**; pooled σ ≈ 0.34, 2σ ≈ 0.68). The two configs shift together because every config sees the same noise/class draws for a given seed, so the **paired** gap B1−B4 at k=24 is stable: 0.944 (seed 0), 0.847 (seed 1), mean 0.90. Consequences: (a) the equal-k margins at k=16 (3.37) and k=12 (5.00) exceed 2σ by a wide margin, so the pre-registered "> 0.5 FID and > 2σ" kill criterion is satisfied (those two pairs are still single-seed; σ comes from the k=24 pairs); (b) the k=24 equal-k advantage (~0.9) is real but only ~2.5σ in absolute terms — report the paired gap across seeds; (c) differences below ~0.7 FID in absolute terms are not claimable: this covers the B∈{2,4,8} comparison (21.75/21.28/21.52), consistent with "no clear trend"; (d) the equal-memory gap B1 k=36 (19.654) vs B4 k=24 (21.277) is 1.6, ≈4σ, but k=36 has one seed only. Third seed and B1 k=36 seeds still needed to firm up σ.

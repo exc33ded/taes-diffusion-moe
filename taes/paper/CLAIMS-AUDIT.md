@@ -13,11 +13,11 @@ Sources are entries in `taes/notes/results-log.md` (F-numbers) unless stated. Up
 | C5 | Compute mode and static-memory mode give identical outputs (max abs diff 0.0) | F23, `p5-01-prune` | supported |
 | C6 | Full-ImageNet reproduction: FID-10k 23.310 vs 23.300 (independent implementation) | F24 | supported |
 | C7 | Unpruned baselines: animals 19.141, vehicles 24.279 (own references); real-vs-real 8.21 / 7.45 | 5.2a/5.2b entries | supported |
-| C8 | Equal k (animals): B4 beats B1 by 0.94 (k=24), 3.37 (k=16), 5.00 (k=12) | runs `compute_animals_B{1,4}_k{24,16,12}_seed0`; F25, F31 | supported single-seed; **pending σ** |
+| C8 | Equal k (animals): B4 beats B1 by 0.94/0.85 (k=24, seeds 0/1), 3.37 (k=16), 5.00 (k=12) | runs `compute_animals_B{1,4}_k{24,16,12}_seed{0,1}`; F25, F31, F32 | supported: k=24 over two seeds; k=16 and k=12 single-seed but far above the seed spread |
 | C9 | Equal k (vehicles, k=24): 26.621 vs 27.644 | F25 | supported single-seed |
 | C10 | At matched union, global beats banded in every pair: B1 k=36 (0.750) 19.654 vs B4 k=24 (0.747) 21.277; B1 k=16 (0.333) 29.153 vs B4 k=8 (0.319) 46.570; B1 k=16 vs B4 k=12 (0.424) 31.735 | F27, F28 | supported single-seed; **pending measured B1 k=32 and seeds** |
 | C11 | Band count B∈{2,4,8}: no monotone trend at k=24 (21.75/21.28/21.52 vs 22.22) | F29 | supported single-seed; differences < ~0.5 are inside plausible noise → word as "no clear trend" |
-| C12 | Seed σ small relative to the 1–5 FID equal-k margins | seed-1 runs (B1/B4 k=24) in flight; seed 2 queued | **pending** — do not state a σ until measured |
+| C12 | Generation-seed σ ≈ 0.3–0.4 FID, small relative to the equal-k margins at k=12 (5.00) and k=16 (3.37); paired B1−B4 gap at k=24 is 0.94 (seed 0) and 0.85 (seed 1) | seed 0 and 1 runs of B1/B4 k=24; F32 | supported with **only two seeds** (very low df): state it as two-seed spread, not a precise σ; third seed pending |
 | C13 | Pooled cond+uncond calibration overlaps ours at Jaccard 0.90–0.99 | `taes/src/baselines.py` (CPU), results-log 2026-10-04 | supported (set overlap); **FID effect pending** |
 | C14 | Random / frequency-only / REAP-style scoring comparison | code and scores built (`taes/src/baseline_scores.py`) | **pending runs**; set overlaps with the full score: freq 0.82–0.88, REAP-style 0.14–0.46 (not results) |
 | C15 | Routed experts are ≈22% of forward FLOPs; top-1 everywhere saves ≤18% (top-3: 9%) | F30, CPU FlopCounterMode, random weights from the real config, batch 2 no CFG | supported for S-E48; **pending B-E48**; end-to-end share depends on VAE (0.142 of 0.4475 s/img, measured) |

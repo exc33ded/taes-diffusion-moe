@@ -109,7 +109,7 @@ confirm before writing any phase code.
 | 6 — Finalise + preprint | pending |
 | 7 — Submission | pending |
 
-**Next action:** open a **new chat** and paste `taes/notes/phase5-prompt.md`. First: pull and sanity-check the seed-1 runs (B1 k=24, B4 k=24) and compute σ; then week-1 queue (seeds, measured B1 k=32, random/frequency-only/REAP-style/CFG-pooled), then the second backbone and the per-band offload measurement. **Phase 5 is not done.** No Phase 5 commit has been pushed to GitHub yet.
+**Next action:** open a **new chat** and paste `taes/notes/phase5-prompt.md`. Seed-1 runs are done (F32: σ≈0.3–0.4, paired k=24 gap 0.94/0.85). Next: seed 2 + B1 k=36 seed 1, then week-1 queue (seeds, measured B1 k=32, random/frequency-only/REAP-style/CFG-pooled), then the second backbone and the per-band offload measurement. **Phase 5 is not done.** No Phase 5 commit has been pushed to GitHub yet.
 
 ---
 

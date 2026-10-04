@@ -22,7 +22,7 @@ Animals results so far (baseline FID 19.141; seed 0; Δ = FID − baseline):
 | 2 | 24 | 0.663 | 21.747 | +2.61 |
 | 8 | 24 | 0.795 | 21.522 | +2.38 |
 Vehicles (baseline 24.279): B1 k=24 27.644, B4 k=24 26.621.
-**Seed-1 runs (B1 k=24, B4 k=24) were launched 2026-10-04 ~12:54 IST on the two lanes — check them first** (see "First actions"). SEED_1_RESULTS_PLACEHOLDER
+**Seed-1 runs are DONE (F32):** B1 k=24 seed 1 = 21.693 (seed 0: 22.221), B4 k=24 seed 1 = 20.846 (seed 0: 21.277); both n=10000, wall ~71 min, grids ok. Absolute FID moves ~0.4–0.5 between seeds (crude σ ≈ 0.34 from two seeds); the paired B1−B4 gap at k=24 is 0.94 (seed 0) and 0.85 (seed 1). The k=12 (5.00) and k=16 (3.37) equal-k margins are far above this, so the kill criterion's 2σ condition is satisfied. Differences below ~0.7 FID absolute are not claimable (covers the B∈{2,4,8} comparison).
 
 ## Decisions already made (do not reopen without Sarim)
 - TMLR empirical study; method/compression framing and the acceleration pivot are closed (`taes/notes/pivot-gate.md` is shelved; `kernels/g1-ditxl-timing` will not run).
@@ -32,7 +32,7 @@ Vehicles (baseline 24.279): B1 k=24 27.644, B4 k=24 26.621.
 
 ## First actions in the new chat
 1. `git log --oneline | head`, `git status`; read the notes above.
-2. Check the seed-1 kernels: `kaggle kernels status mohammedsarim/taes-p5-05-sweep` (lane A = B1 k=24 seed 1) and `taes-p5-06-sweep` (lane B = B4 k=24 seed 1). If COMPLETE, pull manually: `kaggle kernels output <slug> -p kernels/<dir>/out --file-pattern "result\.json|samples16\.png|\.log$" -o`; run id `compute_animals_B{1,4}_k24_seed1`. Sanity-check, log, compute the seed-0 vs seed-1 differences and judge whether the F31 margins (5.0 at k=12, 3.4 at k=16) clearly exceed them; add to `CLAIMS-AUDIT.md` C12.
+2. Seed-1 results are already pulled/logged (F32); the kernels' outputs are under `kernels/p5-05-sweep/out/results/compute_animals_B1_k24_seed1` and `kernels/p5-06-sweep/out/results/compute_animals_B4_k24_seed1` (local, uncommitted). Next: seed 2 for the same two configs to get 3 observations per config, and B1 k=36 seed 1.
 3. Launch the rest of week 1, one canary then one full run per lane at a time (2 concurrent sessions is the Kaggle cap).
 
 ## Queue (animals; `CONFIG` line = `DOMAIN, B, K, N, SCORE, SEED` in `kernels/p5-05-sweep/step.py` and `p5-06-sweep/step.py`; N=500 canary, N=10000 full)

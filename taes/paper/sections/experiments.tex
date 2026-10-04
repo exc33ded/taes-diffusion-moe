@@ -13,7 +13,7 @@ Domain FIDs live on their own scales, so every result is reported as the increas
 To validate the sampling and FID pipeline we reproduce the full-ImageNet FID of the unpruned model: $23.310$ against $23.300$ from an independent earlier implementation of the same protocol.
 
 \paragraph{Runs and seeds.}
-Every configuration is one FID-10k run with $\text{seed}_{\text{base}}=0$ unless stated. \todo{report mean $\pm$ s.d. over generation seeds for the load-bearing configurations (B1 and B4 at $k=24$, B1 at $k=36$).}
+Every configuration is one FID-10k run with $\text{seed}_{\text{base}}=0$ unless stated. Two generation seeds for B1 and B4 at $k=24$ move the absolute FID by $0.53$ and $0.43$ while the paired B1--B4 gap stays at $0.94$ and $0.85$; we therefore treat absolute differences below about $0.7$ FID as noise and report paired gaps. \todo{third seed; seeds for B1 at $k=36$; report mean $\pm$ s.d.}
 Calibration is a single 500-image sample per domain. \todo{optional second calibration sample.}
 
 \paragraph{Compute and reproducibility.}
