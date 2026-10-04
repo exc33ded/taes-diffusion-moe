@@ -1,3 +1,5 @@
+> **SHELVED 2026-10-04** — Sarim chose to target TMLR with the TAES empirical study instead. Kept for reference; `kernels/g1-ditxl-timing` is written but will not be run unless the pivot is reopened.
+
 # Pivot gate — can a free T4 host a credible diffusion-acceleration paper? (2026-10-04)
 
 **Why:** TAES is closed as a method (F27–F30). Sarim wants a journal paper with something real, not an analysis paper, on any diffusion-efficiency topic. Consensus scan (2026-10-04): training-free DiT acceleration is saturated (TaylorSeer, HiCache, PrediT, Spectrum, OmniCache, SODA, MosaicDiff, RALU, JiT, MrFlow, Q&C…, claims 3–12× on FLUX/Hunyuan). A new method has low odds; the unverified open angle is a matched-protocol, commodity-GPU study of acceleration methods (composability, rank stability). This gate decides, cheaply, whether a T4 can host either.

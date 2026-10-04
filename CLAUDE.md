@@ -105,11 +105,11 @@ confirm before writing any phase code.
 | 2 — Instrumentation (hooks, latents, domains) | ✅ complete (redone 2026-09-19 via CLI) — `hooks.py` 300 hooks / counts 12800 per layer; 100 animal + 69 vehicle classes; 1000 latents. Mirrored locally **and** in the Dataset. |
 | 3 — Calibration + scoring + diagnostics | ✅ complete — telemetry, scores B∈{1,2,4,8}, 3 figures, Method draft. F19/F20 in results-log. In the Dataset. |
 | 4 — GO/NO-GO | ✅ **GO** — split-half noise floor 0.90–0.99 vs distant-band 0.12–0.41 (F21); no load-balance-bias confound, all layers (F22). Compute mode headline at k=24 (union 0.73–0.80), memory mode pays at k≲12. |
-| **5 — Main experiments** | ⬅ **IN PROGRESS** — F23-F29. Equal-k: banding beats global (~1 FID). Equal-memory: global wins every pair tested (B1 k=36 19.65 vs B4 k=24 21.28; B1 k=16 29.15 vs B4 k=8 46.57); no trend across B∈{2,4,8}. Animals only. `taes/notes/phase5-prompt.md` has the continuation prompt. |
+| **5 — Main experiments** | ⬅ **IN PROGRESS, target = TMLR empirical study (decided 2026-10-04)** — F23-F30. Equal-k: banding beats global (~1 FID). Equal-memory: global wins every pair tested; no trend across B∈{2,4,8}. Method framing closed (3 external verdicts + F30). Plan: seeds/σ, matched points, random + frequency-only baselines, CFG check, vehicles replication, 2nd backbone DSMoE-B-E48, FID-50k on 2-3 configs. `taes/notes/phase5-prompt.md` has the plan. |
 | 6 — Finalise + preprint | pending |
 | 7 — Submission | pending |
 
-**Next action:** Phase 5 continuation — B1 k=32 (confirms the interpolated matched-memory point), then priority 3 random removal and priority 4 frequency-only (new mask code needed), then remaining k-sweep points and possibly a second seed on the load-bearing comparisons. Two Kaggle lanes (`kernels/p5-05-sweep`, `p5-06-sweep`) can run concurrently; canary before every full run. Open a **new chat** and paste `taes/notes/phase5-prompt.md`.
+**Next action:** TMLR plan, week 1 — seed σ (B1/B4 k=24, B1 k=36 × 2 gen seeds), measured B1 k=32, random-removal and frequency-only baselines, CFG-pooled calibration check; then 2nd backbone. Two Kaggle lanes (`kernels/p5-05-sweep`, `p5-06-sweep`). Open a **new chat** and paste `taes/notes/phase5-prompt.md`.
 
 ---
 
