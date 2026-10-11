@@ -799,3 +799,12 @@ B1 k=36: 19.654 (seed 0), 19.299 (seed 1). Matched union 0.75 (B1 k=36 vs B4 k=2
 
 ### F35 — importance score matters: random removal is catastrophic, frequency-only costs ~0.8 FID
 At global k=24 of 48 (seed 0): TAES full score 22.221, frequency-only 23.053 (+0.83, ~3σ at σ≈0.25 but single seed), random 106.828. Random removal (one random draw, rand_s0) is a floor ~85 FID worse than the calibrated score, so the calibrated selection carries nearly all the value; the gate-magnitude/l2 terms add a small but measurable gain over frequency alone. Random is a single draw (other draws pending if quota allows).
+
+## 2026-10-11 — REAP-style (B1 k=24) and frequency-only (B4 k=24), seed 0
+| Run ID | FID-10k | Δ vs 19.141 | Union | Sanity |
+|---|---|---|---|---|
+| `compute_animals_B1_k24_reap_seed0` | 110.863 | +91.72 | 0.500 | n=10000, wall 72.3min, grid = destroyed textures |
+| `compute_animals_B4_k24_freq_seed0` | 22.936 | +3.80 | 0.726 | n=10000, wall 73.7min, grid ok |
+
+### F36 — frequency-only loses to the full score in both B; the REAP-style proxy is as bad as random
+Frequency-only vs full TAES score, seed 0: B1 k=24 23.053 vs 22.221 (+0.83); B4 k=24 22.936 vs 21.277 (+1.66). Banding still beats global under frequency-only (23.053 − 22.936 = 0.12 only, within noise), so the equal-k banding gain at k=24 depends on the gate/l2 terms: it shrinks from 0.94 (full score) to ~0.12 (freq-only, single seed). REAP-style (mean gate x mean l2, no frequency term; this is our telemetry-based proxy, not the REAP reference implementation) at B1 k=24 = 110.863, worse than the random draw (106.828): ranking by per-routed-token magnitude alone selects rarely-routed experts and destroys the model, so the frequency term is essential here. Caveat: do not describe this as a failure of REAP itself; REAP's own scoring/calibration differs.
