@@ -789,3 +789,13 @@ B1 k=24 over seeds 0/1/2: 22.221, 21.693, 21.755 (mean 21.890, sd 0.289). B4 k=2
 
 ### F34 — equal-union gap confirmed with a second seed; B1 k=32 measured
 B1 k=36: 19.654 (seed 0), 19.299 (seed 1). Matched union 0.75 (B1 k=36 vs B4 k=24): global wins by 1.623 (seed 0) and 1.547 (seed 1), paired, consistent with F32(d) (≈4σ+). B1 k=32 (union 0.667) = 20.117 is the measured point replacing the F29/C10 interpolation; single seed. Baseline Δ vs 19.141: +0.98.
+
+## 2026-10-11 — Baselines at B1 k=24 (seed 0): random removal, frequency-only
+| Run ID | FID-10k | Δ vs 19.141 | Union | Sanity |
+|---|---|---|---|---|
+| `compute_animals_B1_k24_rand_s0_seed0` | 106.828 | +87.69 | 0.500 | n=10000, wall 85.7min, grid = heavily degraded textures, class structure largely lost |
+| `compute_animals_B1_k24_freq_seed0` | 23.053 | +3.91 | 0.500 | n=10000, wall 73.3min, grid ok (close to full-score B1 k=24) |
+(No canaries; new score-selection path, both completed normally.)
+
+### F35 — importance score matters: random removal is catastrophic, frequency-only costs ~0.8 FID
+At global k=24 of 48 (seed 0): TAES full score 22.221, frequency-only 23.053 (+0.83, ~3σ at σ≈0.25 but single seed), random 106.828. Random removal (one random draw, rand_s0) is a floor ~85 FID worse than the calibrated score, so the calibrated selection carries nearly all the value; the gate-magnitude/l2 terms add a small but measurable gain over frequency alone. Random is a single draw (other draws pending if quota allows).
