@@ -2,7 +2,7 @@
 # SCORE: "std" = TAES scores from the Dataset; otherwise a key of BASELINE_I (extra taes/src/baseline_scores.py), e.g. "freq", "reap", "rand_s0"
 # SEED: generation seed_base. Run id keeps the legacy name for std/seed0.
 import zipfile
-DOMAIN, B, K, N, SCORE, SEED = "animals", 1, 32, 10000, "std", 0   # CONFIG (N=500 -> canary)
+DOMAIN, B, K, N, SCORE, SEED = "animals", 1, 24, 10000, "freq", 0   # CONFIG (N=500 -> canary)
 def find(rel, zipname, zsub):
     for base in [DS, "/kaggle/input/taes-artifacts"]:
         p = f"{base}/{rel}"

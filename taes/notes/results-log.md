@@ -780,3 +780,12 @@ Absolute FID moves by 0.53 (B1) and 0.43 (B4) between seeds, i.e. a crude per-co
 
 ### F33 — three-seed σ and paired gap at k=24
 B1 k=24 over seeds 0/1/2: 22.221, 21.693, 21.755 (mean 21.890, sd 0.289). B4 k=24: 21.277, 20.846, 21.039 (mean 21.054, sd 0.216). Paired B1−B4 gap: 0.944, 0.847, 0.716 (mean 0.836, sd 0.114). The gap is positive in all three seeds; absolute σ ≈ 0.25 (2σ ≈ 0.5), so F32's "~0.7 not claimable" threshold was conservative: differences below ~0.5 FID absolute remain unclaimable, the paired k=24 gap (0.84) is claimable. Equal-k margins at k=16 (3.37) and k=12 (5.00) are single-seed but ≫ 2σ.
+
+## 2026-10-11 — B1 k=36 seed 1 and measured B1 k=32 (seed 0)
+| Run ID | FID-10k | Union | Sanity |
+|---|---|---|---|
+| `compute_animals_B1_k36_seed1` | 19.299 | 0.750 | n=10000, wall 77.7min, grid ok |
+| `compute_animals_B1_k32_seed0` | 20.117 | 0.667 | n=10000, wall 73.2min, grid ok |
+
+### F34 — equal-union gap confirmed with a second seed; B1 k=32 measured
+B1 k=36: 19.654 (seed 0), 19.299 (seed 1). Matched union 0.75 (B1 k=36 vs B4 k=24): global wins by 1.623 (seed 0) and 1.547 (seed 1), paired, consistent with F32(d) (≈4σ+). B1 k=32 (union 0.667) = 20.117 is the measured point replacing the F29/C10 interpolation; single seed. Baseline Δ vs 19.141: +0.98.
