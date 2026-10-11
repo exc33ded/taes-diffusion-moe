@@ -770,3 +770,13 @@ B4 k8 (M=0.785) is below the B1 range: no prediction. Reading: M predicts the ba
 
 ### F32 — generation-seed noise is ~0.3–0.4 FID; the paired banded-vs-global gap is stable
 Absolute FID moves by 0.53 (B1) and 0.43 (B4) between seeds, i.e. a crude per-config σ of ≈0.37 and ≈0.31 (two seeds each: **very low degrees of freedom**; pooled σ ≈ 0.34, 2σ ≈ 0.68). The two configs shift together because every config sees the same noise/class draws for a given seed, so the **paired** gap B1−B4 at k=24 is stable: 0.944 (seed 0), 0.847 (seed 1), mean 0.90. Consequences: (a) the equal-k margins at k=16 (3.37) and k=12 (5.00) exceed 2σ by a wide margin, so the pre-registered "> 0.5 FID and > 2σ" kill criterion is satisfied (those two pairs are still single-seed; σ comes from the k=24 pairs); (b) the k=24 equal-k advantage (~0.9) is real but only ~2.5σ in absolute terms — report the paired gap across seeds; (c) differences below ~0.7 FID in absolute terms are not claimable: this covers the B∈{2,4,8} comparison (21.75/21.28/21.52), consistent with "no clear trend"; (d) the equal-memory gap B1 k=36 (19.654) vs B4 k=24 (21.277) is 1.6, ≈4σ, but k=36 has one seed only. Third seed and B1 k=36 seeds still needed to firm up σ.
+
+## 2026-10-11 — Seed-2 runs (generation seed_base 2) for B1 k=24 and B4 k=24
+| Run ID | FID-10k | Union | Sanity |
+|---|---|---|---|
+| `compute_animals_B1_k24_seed2` | 21.755 | 0.500 | n=10000, wall 75.9min, grid ok |
+| `compute_animals_B4_k24_seed2` | 21.039 | 0.747 | n=10000, wall 76.1min, grid ok |
+(Pollers died while idle; pulled manually. No canary run for these two: both configs had already completed full runs.)
+
+### F33 — three-seed σ and paired gap at k=24
+B1 k=24 over seeds 0/1/2: 22.221, 21.693, 21.755 (mean 21.890, sd 0.289). B4 k=24: 21.277, 20.846, 21.039 (mean 21.054, sd 0.216). Paired B1−B4 gap: 0.944, 0.847, 0.716 (mean 0.836, sd 0.114). The gap is positive in all three seeds; absolute σ ≈ 0.25 (2σ ≈ 0.5), so F32's "~0.7 not claimable" threshold was conservative: differences below ~0.5 FID absolute remain unclaimable, the paired k=24 gap (0.84) is claimable. Equal-k margins at k=16 (3.37) and k=12 (5.00) are single-seed but ≫ 2σ.
